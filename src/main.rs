@@ -1,14 +1,23 @@
-use std::io;
+use std::{io, process::exit};
 use clearscreen::{self, clear};
 use walkdir::WalkDir;
 use dircpy;
 use chrono;
 use serde_json;
+use std::sync::Mutex;
+use lazy_static::lazy_static;
+
+static CONFIG_PATH: &str = "config.json";
+static DEFAULT_SAVES_PATH: &str = "C:/Users/Admin/AppData/LocalLow/semiwork/REPO/saves";
+static DESTINATION_BASE_PATH: &str = "C:/Users/Admin/AppData/LocalLow/semiwork/REPO/backups";
+lazy_static! {
+    static ref CONFIG: Mutex<serde_json::Value> = Mutex::new(serde_json::json!({}));
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         clear().expect("failed to clear screen");
-        println!("Available commands:\n1 (lists all save folders in default game save files path)\nexit (quit the program)\n2 (copy a save folder from the list)");
+        println!("Available commands:\n1 (lists all save folders in default game save files path)\nexit (quit the program)\n2 (copy a save folder from the list)\n3 (Test how the jsoon stuff works)");
         let mut action = String::new();
         io::stdin()
             .read_line(&mut action)
@@ -19,8 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("Those are all the save folders available.");
             // Collect directories into a vector
             let mut dirs: Vec<String> = Vec::new();
-            let default_saves_path = "C:/Users/Admin/AppData/LocalLow/semiwork/REPO/saves";
-            for entry in WalkDir::new(default_saves_path)
+            for entry in WalkDir::new(DEFAULT_SAVES_PATH)
                 .min_depth(1)
                 .max_depth(1)
             {
@@ -44,11 +52,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             clear().expect("failed to clear screen");
 
             // Load or create configuration file
-            let config_path = "config.json";
             let mut last_version = String::from("0.3.0");
             
             // Try to load existing config
-            if let Ok(config_contents) = std::fs::read_to_string(config_path) {
+            if let Ok(config_contents) = std::fs::read_to_string(CONFIG_PATH) {
                 if let Ok(config) = serde_json::from_str::<serde_json::Value>(&config_contents) {
                     if let Some(version) = config.get("last_version").and_then(|v| v.as_str()) {
                         last_version = version.to_string();
@@ -78,12 +85,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let config = serde_json::json!({
                 "last_version": version
             });
-            std::fs::write(config_path, serde_json::to_string_pretty(&config)?)?;
+            std::fs::write(CONFIG_PATH, serde_json::to_string_pretty(&config)?)?;
 
             // Create destination path
-            let destination_base_path = "C:/Users/Admin/GameBackups/rust";
-            let version_path = std::path::Path::new(destination_base_path).join(&version);
-            
+            let version_path = std::path::Path::new(DESTINATION_BASE_PATH).join(&version);
             if !version_path.exists() {
                 std::fs::create_dir_all(&version_path)?;
                 println!("Created new version directory: {}", version_path.display());
@@ -94,8 +99,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // List all save folders
             println!("\nThose are all the save folders available:");
             let mut dirs: Vec<String> = Vec::new();
-            let default_saves_path = "C:/Users/Admin/AppData/LocalLow/semiwork/REPO/saves";
-            for entry in WalkDir::new(default_saves_path)
+            for entry in WalkDir::new(DEFAULT_SAVES_PATH)
                 .min_depth(1)
                 .max_depth(1)
             {
@@ -142,19 +146,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("failed to clear screen");
         }
-        //if action.trim().eq_ignore_ascii_case("json-test") {
-        //    let config = serde_json::json!({
-        //        "last_version": version
-        //    });
-        //}
-        else if action.trim().eq_ignore_ascii_case("exit") {
+        
+        if action.trim().eq_ignore_ascii_case("3") {
+            clear().expect("failed to clear screen");
+            // Read and display config.json contents
+            match std::fs::read_to_string(CONFIG_PATH) {
+                Ok(contents) => {
+                    match serde_json::from_str::<serde_json::Value>(&contents) {
+                        Ok(config) => {
+                            println!("Config file contents:");
+                            println!("{}", serde_json::to_string_pretty(&config).unwrap());
+                            
+                            // Access specific values
+                            if let Some(version) = config.get("last_version") {
+                                println!("\nLast version: {}", version);
+                                let fucks_given = config.get("fucks_given");
+                                print!("\nFucks given: {}", fucks_given.unwrap_or(&serde_json::Value::Number(serde_json::Number::from(0))));
+                            }
+                        }
+                        Err(e) => println!("Failed to parse JSON: {}", e),
+                    }
+                }
+                Err(e) => println!("Failed to read config file: {}", e),
+            }
+
+            println!("\nPress Enter to return to main menu...");
+            let mut _pause = String::new();
+            io::stdin().read_line(&mut _pause).ok();
+            clear().expect("failed to clear screen");
+        }
+        
+        if action.trim().eq_ignore_ascii_case("exit") {
             clear().expect("failed to clear screen");
             println!("Exiting program. Goodbye!");
-            break;
-            }
+            exit(0);
         }
-    Ok(())
+    }
 }
+
+
     
     //if menu_choise.trim().eq_ignore_ascii_case("dirwalk") {
     //    println!("What you wanna scan");

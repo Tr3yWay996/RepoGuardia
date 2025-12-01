@@ -1,7 +1,7 @@
 use std::{io, process::exit};
 use clearscreen::{self, clear};
 use walkdir::WalkDir;
-use dircpy::{self, CopyBuilder};
+use dircpy;
 use chrono;
 use serde_json;
 

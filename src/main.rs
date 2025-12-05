@@ -1,3 +1,5 @@
+// Alright so i added some comments, for 1: Myself and two: for you to understand hopefully my thought process on how i built this lil program
+
 use std::{io, process::exit};
 use clearscreen::{self, clear};
 use walkdir::WalkDir;
@@ -47,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            // Display numbered list
+            // Display numbered list, was a lil bit harder but i got it with some stackoverflow help
             for (index, dir) in dirs.iter().enumerate() {
                 let metadata = std::fs::metadata(dir)?;
                 let modified = metadata.modified()?;
@@ -63,11 +65,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if action.trim() == "2" {
             clear().expect("Failed to clear screen at option 2");
 
-            // Load configuration
+            // Load configuration, logic that i'll reuse a lot of time, most likelly :3
             let mut config = load_config().unwrap_or_else(|_| serde_json::json!({}));
             let last_version = get_config_value("last_version");
 
-            // Ask user if they want to use the last version
+            // Ask user if they want to use the last version, cuz what if they got an update or smsh
             println!("Last used version was: {}\nUse it? (y/n)", last_version);
             let mut use_last = String::new();
             io::stdin()
@@ -108,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     dirs.push(entry.path().display().to_string());
                 }
             }
-            // Display numbered list
+            // Display numbered list, again
             for (index, dir) in dirs.iter().enumerate() {
                 let metadata = std::fs::metadata(dir)?;
                 let modified = metadata.modified()?;
@@ -126,13 +128,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let selected_path = &dirs[num - 1];
                     println!("You selected: {}", selected_path);
 
-                    // Copy logic
+                    // Copy logic, nice
                     let dir_name = std::path::Path::new(selected_path)
                         .file_name()
                         .and_then(|n| n.to_str())
                         .unwrap_or("backup");
-                    // let uuid = uuid::Uuid::new_v4(); If i want to use UUIDs instead of timestamps, unlikely tho
+                    // let uuid = uuid::Uuid::new_v4(); If i want to use UUIDs instead of timestamps, unlikely tho, but who knows what my future self have in mind ¯\_(ツ)_/¯
                     let timestamp = chrono::Local::now().format("%3f").to_string();
+                    let uuid= uuid::Uuid::new_v4();
+                    println!("UUID is: {}", uuid);
                     let original_name = dir_name;
                     let backup_name = format!("{}.{}", original_name, timestamp);
                     let backup_folder = version_path.join(&backup_name);
@@ -141,7 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     dircpy::copy_dir(selected_path, &full_destination)?;
                     println!("Copied to: {}", full_destination.display());
 
-                    // Create metadata file
+                    // Create metadata file, hey that's a new one, i didnt implemented the damn label thingy yet lol, but fine for now
                     let metadata = serde_json::json!({
                         "original_name": original_name,
                         "backup_name": backup_name,
@@ -192,7 +196,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             
 
-            // Create destination path
+            // Create destination path, because who doenst love reusing code am i right
             let destination_base_path = get_config_value("destination_base_path");
             let version_path = std::path::Path::new(&destination_base_path).join(&version);
             
@@ -218,7 +222,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
             }
-            // Display numbered list
+            // Display numbered list, again
             for (index, dir) in dirs.iter().enumerate() {
                 // Read metadata to show original name and created date
                 let metadata_path = std::path::Path::new(dir).join("backup_metadata.json");
@@ -249,7 +253,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .and_then(|v| v.as_str())
                         .unwrap_or("");
                     
-                    // The save folder is inside the backup folder with the original name
+                    // The save folder is inside the backup folder with the original name, checked
                     let save_folder = std::path::Path::new(backup_folder).join(original_name);
                     let full_destination = std::path::Path::new(&default_saves_path).join(&original_name);
                     
@@ -257,7 +261,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         std::fs::remove_dir_all(&full_destination)?;
                         println!("Deleted existing save at: {}", full_destination.display());
                     }
-                    // Copy the save folder to destination
+                    // Copy the save folder to destination, checked
                     dircpy::copy_dir(&save_folder, &full_destination)?;
                     println!("Restored to: {}", full_destination.display());
                 } else {
@@ -281,7 +285,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 
-    
+// Don't mind that commented out code bellow too much, it was my first times with dirwalk and stuff like serde_json, keept it for reference, and also as a history of my discoveries :3    
     //if menu_choise.trim().eq_ignore_ascii_case("dirwalk") {
     //    println!("What you wanna scan");
     //    let mut path = String::new();

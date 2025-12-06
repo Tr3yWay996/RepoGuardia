@@ -1,5 +1,5 @@
 {
-  "default_saves_path": "X:\\persso\\Projects\\Save_test",
-  "destination_base_path": "X:\\persso\\Projects\\Backup_test",
-  "last_version": "4567"
+  "default_saves_path": "C:\\Users\\Admin\\AppData\\LocalLow\\semiwork\\REPO\\saves",
+  "destination_base_path": "C:\\Users\\Admin\\AppData\\LocalLow\\semiwork\\REPO\\backups",
+  "last_version": "yay"
 }

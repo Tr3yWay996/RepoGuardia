@@ -1,4 +1,4 @@
-use std::{error::Error, io, path::PathBuf, time::Duration};
+use std::{error::Error, io, path::PathBuf};
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
@@ -48,6 +48,7 @@ struct App {
     items: Vec<String>, // Generic list of items to display
     state: ListState,   // State for the list widget
     status_message: String,
+    input_buffer: String,
 }
 
 impl App {
@@ -55,14 +56,15 @@ impl App {
         App {
             current_screen: CurrentScreen::MainMenu,
             items: vec![
-                "1. List Backed Up Saves".to_string(),
-                "2. Backup a Save Folder".to_string(),
-                "3. Restore Backup".to_string(),
-                "4. Choose Backup Version".to_string(),
+                "1. List backed up saves".to_string(),
+                "2. Backup a save folder".to_string(),
+                "3. Restore backup".to_string(),
+                "4. Choose game Version".to_string(),
                 "Exit".to_string(),
             ],
             state: ListState::default(),
             status_message: String::from("Welcome to RepoGuardian TUI!"),
+            input_buffer: String::new(),
         }
     }
 
@@ -134,81 +136,118 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
 
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
-                match key.code {
-                    KeyCode::Char('q') => return Ok(()),
-                    KeyCode::Down => app.next(),
-                    KeyCode::Up => app.previous(),
-                    KeyCode::Esc | KeyCode::Backspace => {
-                        // Go back to main menu
-                        app.current_screen = CurrentScreen::MainMenu;
-                        app.items = vec![
-                            "1. List Backed Up Saves".to_string(),
-                            "2. Backup a Save Folder".to_string(),
-                            "3. Restore Backup".to_string(),
-                            "4. Choose Backup Version".to_string(),
-                            "Exit".to_string(),
-                        ];
-                        app.state.select(Some(0));
-                        app.status_message = "Main Menu".to_string();
+                match app.current_screen {
+                    CurrentScreen::ChooseVersion => {
+                        match key.code {
+                            KeyCode::Char(c) => {
+                                app.input_buffer.push(c);
+                            }
+                            KeyCode::Backspace => {
+                                app.input_buffer.pop();
+                            }
+                            KeyCode::Enter => {
+                                save_version(app);
+                                app.current_screen = CurrentScreen::MainMenu;
+                                app.items = vec![
+                                    "1. List backed up saves".to_string(),
+                                    "2. Backup a save folder".to_string(),
+                                    "3. Restore backup".to_string(),
+                                    "4. Choose game Version".to_string(),
+                                    "Exit".to_string(),
+                                ];
+                                app.state.select(Some(0));
+                            }
+                            KeyCode::Esc => {
+                                app.current_screen = CurrentScreen::MainMenu;
+                                app.items = vec![
+                                    "1. List backed up saves".to_string(),
+                                    "2. Backup a save folder".to_string(),
+                                    "3. Restore backup".to_string(),
+                                    "4. Choose game Version".to_string(),
+                                    "Exit".to_string(),
+                                ];
+                                app.state.select(Some(0));
+                                app.status_message = "Cancelled version selection".to_string();
+                            }
+                            _ => {}
+                        }
                     }
-                    KeyCode::Enter => {
-                        match app.current_screen {
-                            CurrentScreen::MainMenu => {
-                                if let Some(selected) = app.state.selected() {
-                                    match selected {
-                                        0 => {
-                                            // List Backed Up Saves
-                                            app.current_screen = CurrentScreen::BackupList;
-                                            load_backups(app);
+                    _ => {
+                        match key.code {
+                            KeyCode::Char('q') => return Ok(()),
+                            KeyCode::Down => app.next(),
+                            KeyCode::Up => app.previous(),
+                            KeyCode::Esc | KeyCode::Backspace => {
+                                // Go back to main menu
+                                app.current_screen = CurrentScreen::MainMenu;
+                                app.items = vec![
+                                    "1. List backed up saves".to_string(),
+                                    "2. Backup a save folder".to_string(),
+                                    "3. Restore backup".to_string(),
+                                    "4. Choose game version".to_string(),
+                                    "Exit".to_string(),
+                                ];
+                                app.state.select(Some(0));
+                                app.status_message = "Main menu".to_string();
+                            }
+                            KeyCode::Enter => {
+                                match app.current_screen {
+                                    CurrentScreen::MainMenu => {
+                                        if let Some(selected) = app.state.selected() {
+                                            match selected {
+                                                0 => {
+                                                    // List Backed Up Saves
+                                                    app.current_screen = CurrentScreen::BackupList;
+                                                    load_backups(app);
+                                                }
+                                                1 => {
+                                                    // Backup a Save Folder
+                                                    app.current_screen = CurrentScreen::SaveList;
+                                                    load_save_folders(app);
+                                                }
+                                                2 => {
+                                                    // Restore Backup
+                                                    app.current_screen = CurrentScreen::RestoreList;
+                                                    load_backups(app); // Reuse load_backups for now
+                                                }
+                                                3 => {
+                                                    app.current_screen = CurrentScreen::ChooseVersion;
+                                                    app.input_buffer = get_config_value("last_version");
+                                                    app.status_message = "Type version and press Enter".to_string();
+                                                }
+                                                
+                                                4 => return Ok(()), // Exit
+                                                _ => {}
+                                            }
                                         }
-                                        1 => {
-                                            // Backup a Save Folder
-                                            app.current_screen = CurrentScreen::SaveList;
-                                            load_save_folders(app);
-                                        }
-                                        2 => {
-                                            // Restore Backup
-                                            app.current_screen = CurrentScreen::RestoreList;
-                                            load_backups(app); // Reuse load_backups for now
-                                        }
-                                        3 => {
-                                            app.current_screen = CurrentScreen::ChooseVersion;
-                                            choose_version(app);
-                                        }
-                                        
-                                        4 => return Ok(()), // Exit
-                                        _ => {}
                                     }
-                                }
-                            }
-                            CurrentScreen::SaveList => {
-                                // Handle selection in Save List (Perform Backup)
-                                if let Some(selected) = app.state.selected() {
-                                    if selected < app.items.len() {
-                                        // let selected_folder = app.items[selected].clone();
-                                        // Parse the path from the display string or store paths separately
-                                        // For simplicity, let's assume we re-fetch or parse. 
-                                        // Ideally, App should store (DisplayString, ActualPath) tuples.
-                                        perform_backup(app, selected);
+                                    CurrentScreen::SaveList => {
+                                        // Handle selection in Save List (Perform Backup)
+                                        if let Some(selected) = app.state.selected() {
+                                            if selected < app.items.len() {
+                                                // let selected_folder = app.items[selected].clone();
+                                                // Parse the path from the display string or store paths separately
+                                                // For simplicity, let's assume we re-fetch or parse. 
+                                                // Ideally, App should store (DisplayString, ActualPath) tuples.
+                                                perform_backup(app, selected);
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                            CurrentScreen::RestoreList => {
-                                // Handle selection in Restore List
-                                if let Some(selected) = app.state.selected() {
-                                    perform_restore(app, selected);
-                                }
-                            }
-                            CurrentScreen::ChooseVersion => {
-                                if let Some(_selected) = app.state.selected() {
-                                    choose_version(app);
-                                    // Handle version selection if needed
+                                    CurrentScreen::RestoreList => {
+                                        // Handle selection in Restore List
+                                        if let Some(selected) = app.state.selected() {
+                                            perform_restore(app, selected);
+                                        }
+                                    }
+                                    CurrentScreen::ChooseVersion => {
+                                        // Should not be reached here if handled above, but for safety
+                                    }
+                                    _ => {}
                                 }
                             }
                             _ => {}
                         }
                     }
-                    _ => {}
                 }
             }
         }
@@ -229,29 +268,23 @@ fn load_save_folders(app: &mut App) {
 
     let mut dirs: Vec<String> = Vec::new();
     for entry in WalkDir::new(&default_saves_path).min_depth(1).max_depth(1) {
-        if let Ok(entry) = entry {
-            if entry.file_type().is_dir() {
-                dirs.push(entry.path().display().to_string());
-            }
+        if let Ok(entry) = entry && entry.file_type().is_dir() {
+            dirs.push(entry.path().display().to_string());
         }
     }
     app.items = dirs;
     app.state.select(Some(0));
 }
 
-fn choose_version(app: &mut App) {
+fn save_version(app: &mut App) {
     let mut config = load_config().unwrap_or_else(|_| serde_json::json!({}));
-    app.items.clear();
-    app.status_message = "Select version for backup (Press Enter)".to_string();
-    let mut choosen_version = String::new();
-    io::stdin()
-        .read_line(&mut choosen_version)
-        .expect("Failed to read version");
-    choosen_version.trim().to_string();
-
-    config["last_version"] = serde_json::Value::String(choosen_version.clone());
-    std::fs::write(CONFIG_PATH, serde_json::to_string_pretty(&config).unwrap_or_default())
-        .expect("Failed to write config");
+    let version = app.input_buffer.trim().to_string();
+    config["last_version"] = serde_json::Value::String(version.clone());
+    if let Err(e) = std::fs::write(CONFIG_PATH, serde_json::to_string_pretty(&config).unwrap_or_default()) {
+        app.status_message = format!("Failed to save config: {}", e);
+    } else {
+        app.status_message = format!("Version saved: {}", version);
+    }
 }
 
 fn load_backups(app: &mut App) {
@@ -411,26 +444,36 @@ fn ui(f: &mut Frame, app: &App) {
         .block(Block::default().borders(Borders::ALL));
     f.render_widget(title, chunks[0]);
 
-    let items: Vec<ListItem> = app
-        .items
-        .iter()
-        .map(|i| {
-            ListItem::new(Line::from(Span::raw(i)))
-                .style(Style::default().fg(Color::White))
-        })
-        .collect();
+    match app.current_screen {
+        CurrentScreen::ChooseVersion => {
+            let input = Paragraph::new(app.input_buffer.as_str())
+                .style(Style::default().fg(Color::Yellow))
+                .block(Block::default().borders(Borders::ALL).title("Enter Game Version"));
+            f.render_widget(input, chunks[1]);
+        }
+        _ => {
+            let items: Vec<ListItem> = app
+                .items
+                .iter()
+                .map(|i| {
+                    ListItem::new(Line::from(Span::raw(i)))
+                        .style(Style::default().fg(Color::White))
+                })
+                .collect();
 
-    let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Items"))
-        .highlight_style(
-            Style::default()
-                .bg(Color::Yellow)
-                .fg(Color::Black)
-                .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol(">> ");
+            let list = List::new(items)
+                .block(Block::default().borders(Borders::ALL).title("Items"))
+                .highlight_style(
+                    Style::default()
+                        .bg(Color::Yellow)
+                        .fg(Color::Black)
+                        .add_modifier(Modifier::BOLD),
+                )
+                .highlight_symbol(">> ");
 
-    f.render_stateful_widget(list, chunks[1], &mut app.state.clone());
+            f.render_stateful_widget(list, chunks[1], &mut app.state.clone());
+        }
+    }
 
     let status = Paragraph::new(app.status_message.as_str())
         .style(Style::default().fg(Color::Gray))

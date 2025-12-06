@@ -25,7 +25,7 @@ fn get_config_value(key: &str) -> String {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         clear().expect("Failed to clear screen at main menu");
-        println!("Available commands:\n1 (lists all backed up saves)\nexit (quit the program)\n2 (copy a save folder from the list)\n3 (restore backup)"); // main menu
+        println!("Available commands:\n1 (lists all backed up saves)\n2 (copy a save folder from the list)\n3 (restore backup)\nexit (quit the program)"); // main menu
         let mut action = String::new();
         io::stdin()
             .read_line(&mut action)
@@ -70,23 +70,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let last_version = get_config_value("last_version");
 
             // Ask user if they want to use the last version, cuz what if they got an update or smsh
-            println!("Last used version was: {}\nUse it? (y/n)", last_version);
-            let mut use_last = String::new();
-            io::stdin()
-                .read_line(&mut use_last)
-                .expect("Failed to read input");
-            
-            let version = if use_last.trim().eq_ignore_ascii_case("y") || use_last.trim().is_empty() {
-                last_version.clone()
-            } else {
-                println!("What is the version of REPO?");
+            let version = if last_version.is_empty() {
+                println!("No last version found, please enter the curent game version bollow:");
                 let mut version_input = String::new();
                 io::stdin()
                     .read_line(&mut version_input)
                     .expect("Failed to read version");
                 version_input.trim().to_string()
+            } else {
+                println!("Last used version was: {}\nUse it? (y/n)", last_version);
+                let mut use_last = String::new();
+                io::stdin()
+                    .read_line(&mut use_last)
+                    .expect("Failed to read input");
+
+                if use_last.trim().eq_ignore_ascii_case("y") || use_last.trim().is_empty() {
+                    last_version.clone()
+                } else {
+                    println!("What is the version of REPO?");
+                    let mut version_input = String::new();
+                    io::stdin()
+                        .read_line(&mut version_input)
+                        .expect("Failed to read version");
+                    version_input.trim().to_string()
+                }
             };
-            
 
             // Create destination path
             let destination_base_path = get_config_value("destination_base_path");

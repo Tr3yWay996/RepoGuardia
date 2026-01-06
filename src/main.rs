@@ -142,7 +142,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .and_then(|n| n.to_str())
                         .unwrap_or("backup");
                     // let uuid = uuid::Uuid::new_v4(); If i want to use UUIDs instead of timestamps, unlikely tho, but who knows what my future self have in mind ¯\_(ツ)_/¯
-                    let timestamp = chrono::Local::now().format("%3f").to_string();
+                    let timestamp = chrono::Local::now().format("%4f").to_string();
                     let uuid= uuid::Uuid::new_v4();
                     println!("UUID is: {}", uuid);
                     let original_name = dir_name;

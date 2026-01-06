@@ -153,6 +153,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                     "2. Backup a save folder".to_string(),
                                     "3. Restore backup".to_string(),
                                     "4. Choose game Version".to_string(),
+                                    "5. Delete save backup".to_string(),
                                     "Exit".to_string(),
                                 ];
                                 app.state.select(Some(0));
@@ -164,6 +165,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                     "2. Backup a save folder".to_string(),
                                     "3. Restore backup".to_string(),
                                     "4. Choose game Version".to_string(),
+                                    "5. Delete save backup".to_string(),
                                     "Exit".to_string(),
                                 ];
                                 app.state.select(Some(0));
@@ -185,6 +187,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                     "2. Backup a save folder".to_string(),
                                     "3. Restore backup".to_string(),
                                     "4. Choose game version".to_string(),
+                                    "5. Delete save backup".to_string(),
                                     "Exit".to_string(),
                                 ];
                                 app.state.select(Some(0));
@@ -356,7 +359,7 @@ fn perform_backup(app: &mut App, selected_index: usize) {
         let version_path = std::path::Path::new(&destination_base_path).join(&version);
 
         let dir_name = selected_path.file_name().and_then(|n| n.to_str()).unwrap_or("backup");
-        let timestamp = Local::now().format("%3f").to_string();
+        let timestamp = Local::now().format("%4f").to_string();
         let original_name = dir_name;
         let backup_name = format!("{}.{}", original_name, timestamp);
         let backup_folder = version_path.join(&backup_name);

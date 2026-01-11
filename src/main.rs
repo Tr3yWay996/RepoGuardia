@@ -9,8 +9,12 @@ use serde_json;
 use std::{io, process::exit};
 use tinterm::{Color, Gradient};
 use walkdir::WalkDir;
-static CONFIG_PATH: &str = "config.json";
+use lazy_static::lazy_static;
+use std::sync::RwLock;
 
+lazy_static! {
+    static ref CONFIG_PATH: RwLock<String> = RwLock::new(String::from("config.json"));
+}
 // Color preset for error messages, warnings, informations, and sucess / confirmation messages
 macro_rules! print_error {
     ($($arg:tt)*) => {
@@ -48,23 +52,41 @@ macro_rules! print_tertiary {
         println!("{}", format!($($arg)*).rgb(255, 149, 90))
     };
 }
-
 // Color macro do just about any RGB or HEX color possible ever to be used in the final executable
-
 macro_rules! print_cyan {
     ($($arg:tt)*) => {
-        println!("{}", format!($($arg)*).cyan());
+        println!("{}", format!($($arg)*).cyan())
     };
 }
 
 macro_rules! print_purple {
     ($($arg:tt)*) => {
-        println!("{}", format!($($arg)*).rgb(208, 0, 255));
+        println!("{}", format!($($arg)*).rgb(208, 0, 255))
     };
 }
-// Tiny-gradient color gradient generato test in a macro for use in messages
+
+fn string_parse_test (input: &str,input2: &str) {
+    print_primary!("{}{}", input, input2);
+}
+
+fn config() {
+    //clear().expect("Emotional damage");
+    let togo = "your mom";
+    print_info!("What da conf doin\nType '{}' for the on-drive test config and press enter for the default main one!", togo);
+    let mut action = String::new();
+    io::stdin().read_line(&mut action).expect("Faaaaa");
+    
+    let mut path = CONFIG_PATH.write().unwrap();
+    if action.trim() == "togo" {
+        *path = String::from("config-togo.json");
+    } else {
+        *path = String::from("config.json");
+    }
+}
+
+// Premade TUI menu text with tinterm gradient color
 fn print_main_menu() {
-    let multiline = "Available commands:\n1 (lists all backed up saves)\n2 (copy a save folder from the list)\n3 (restore backup)\nexit (quit the program)";
+    let multiline = "Available commands:\n1 (lists all backed up saves)\n2 (copy a save folder from the list)\n3 (restore backup)\n4 (Delete backup)\nexit (quit the program)";
     println!(
         "{}",
         multiline.gradient(Color::CYAN, Color::MAGENTA, Some(true))
@@ -72,7 +94,8 @@ fn print_main_menu() {
 }
 
 fn load_config() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-    let config_contents = std::fs::read_to_string(CONFIG_PATH)?;
+    let path_guard = CONFIG_PATH.read().unwrap();
+    let config_contents = std::fs::read_to_string(&*path_guard)?;
     let config: serde_json::Value = serde_json::from_str(&config_contents)?;
     Ok(config)
 }
@@ -90,7 +113,11 @@ fn get_config_value(key: &str) -> String {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    
+    //config();
     loop {
+        string_parse_test("your bed"," is nice");
+        config();
         clear().expect("Failed to clear screen at main menu");
         print_main_menu(); // main menu
         let mut action = String::new();
@@ -169,7 +196,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let version_path = std::path::Path::new(&destination_base_path).join(&version);
 
             config["last_version"] = serde_json::Value::String(version.clone());
-            std::fs::write(CONFIG_PATH, serde_json::to_string_pretty(&config)?)?;
+            let config_path = CONFIG_PATH.read().unwrap();
+            std::fs::write(&*config_path, serde_json::to_string_pretty(&config)?)?;
 
             print_success!("Using version directory: {}", version_path.display());
 
@@ -257,6 +285,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("failed to clear screen");
         }
+        
         if action.trim() == "3" {
             clear().expect("Failed to clear screen at option 2");
 
@@ -292,7 +321,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let version_path = std::path::Path::new(&destination_base_path).join(&version);
 
             config["last_version"] = serde_json::Value::String(version.clone());
-            std::fs::write(CONFIG_PATH, serde_json::to_string_pretty(&config)?)?;
+            let config_path = CONFIG_PATH.read().unwrap();
+            std::fs::write(&*config_path, serde_json::to_string_pretty(&config)?)?;
 
             print_info!("Using version directory: {}", version_path.display());
 
@@ -393,10 +423,152 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("failed to clear screen");
         }
+        
+        if action.trim() == "4" {
+            clear().expect("Failed to clear screen at option 4");
+
+            // Load configuration
+            let mut config = load_config().unwrap_or_else(|_| serde_json::json!({}));
+            let last_version = config
+                .get("last_version")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| String::from("0.3.0"));
+
+            // Ask user if they want to use the last version
+            print_warn!("Last used version was: {}\nUse it? (y/n)", last_version);
+            let mut use_last = String::new();
+            io::stdin()
+                .read_line(&mut use_last)
+                .expect("Failed to read input");
+
+            let version = if use_last.trim().eq_ignore_ascii_case("y") || use_last.trim().is_empty()
+            {
+                last_version.clone()
+            } else {
+                println!("What is the version of REPO?");
+                let mut version_input = String::new();
+                io::stdin()
+                    .read_line(&mut version_input)
+                    .expect("Failed to read version");
+                version_input.trim().to_string()
+            };
+
+            // Create destination path, because who doenst love reusing code am i right
+            let destination_base_path = get_config_value("destination_base_path");
+            let version_path = std::path::Path::new(&destination_base_path).join(&version);
+
+            config["last_version"] = serde_json::Value::String(version.clone());
+            let config_path = CONFIG_PATH.read().unwrap();
+            std::fs::write(&*config_path, serde_json::to_string_pretty(&config)?)?;
+
+            print_info!("Using version directory: {}", version_path.display());
+
+            // List all backup folders (the timestamped ones)
+            println!("\nThose are all the backed up saves available:");
+            let default_saves_path = get_config_value("default_saves_path");
+            let mut dirs: Vec<String> = Vec::new();
+            for entry in WalkDir::new(&destination_base_path)
+                .min_depth(2)
+                .max_depth(2)
+            {
+                let entry = entry?;
+                if entry.file_type().is_dir() {
+                    // Only include folders that have a backup_metadata.json
+                    let metadata_check = entry.path().join("backup_metadata.json");
+                    if metadata_check.exists() {
+                        dirs.push(entry.path().display().to_string());
+                    }
+                }
+            }
+            // Display numbered list, again
+            for (index, dir) in dirs.iter().enumerate() {
+                // Read metadata to show original name and created date
+                let metadata_path = std::path::Path::new(dir).join("backup_metadata.json");
+                if let Ok(contents) = std::fs::read_to_string(&metadata_path) {
+                    if let Ok(meta) = serde_json::from_str::<serde_json::Value>(&contents) {
+                        let original = meta
+                            .get("original_name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("?");
+                        let created = meta
+                            .get("created_at")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("?");
+                        println!("{}: {} (created: {})", index + 1, original, created);
+                    }
+                }
+            }
+
+            // Get user selection
+            print_info!("\nEnter the number of the backup to delete:");
+            let mut choice = String::new();
+            io::stdin()
+                .read_line(&mut choice)
+                .expect("Failed to read input");
+
+            if let Ok(num) = choice.trim().parse::<usize>() {
+                if num > 0 && num <= dirs.len() {
+                    let backup_folder = &dirs[num - 1];
+                    print_success!("You selected to delete: {}", backup_folder);
+
+                    // Read metadata from the backup folder
+                    let metadata_path =
+                        std::path::Path::new(backup_folder).join("backup_metadata.json");
+                    let metadata_contents = std::fs::read_to_string(&metadata_path)?;
+                    let metadata: serde_json::Value = serde_json::from_str(&metadata_contents)?;
+                    let original_name = metadata
+                        .get("original_name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
+
+                    // The save folder is inside the backup folder with the original name, checked
+                    let save_folder = std::path::Path::new(backup_folder).join(original_name);
+                    let full_destination =
+                        std::path::Path::new(&default_saves_path).join(&original_name);
+
+                    if full_destination.exists() {
+                        print_warn!(
+                            "This is going to deleted the existing save backup at: {}\nPlease confirm with 'y'",
+                            full_destination.display()
+                        );
+                        let mut deletion_confirmation = String::new();
+                        io::stdin()
+                            .read_line(&mut deletion_confirmation)
+                            .expect("Failed to retrieve user deletion confirmation");
+                        if deletion_confirmation.trim() == "y" {
+                            std::fs::remove_dir_all(&full_destination)?;
+                            print_warn!("Deleted existing save at: {}", full_destination.display());
+                            // Copy the save folder to destination, checked
+                            dircpy::copy_dir(&save_folder, &full_destination)?;
+                            print_success!("Restored to: {}", full_destination.display());
+                        } else {
+                            print_error!("Operation canceled")
+                        }
+                    }
+                } else {
+                    print_error!(
+                        "Invalid selection. Please choose a number between 1 and {}",
+                        dirs.len()
+                    );
+                }
+            } else {
+                print_error!("Invalid input. Please enter a number.");
+            }
+
+            print_secondary!("\nPress Enter to return to main menu...");
+            let mut _pause = String::new();
+            io::stdin().read_line(&mut _pause).ok();
+            clear().expect("failed to clear screen");
+        }
+        
         if action.trim() == "exit" {
             clear().expect("Failed to clear screen at exit");
             print_primary!("Exiting program. Goodbye!");
             exit(0);
+        }
+        if action.trim() == "change config" {
+            config();
         }
     }
 }

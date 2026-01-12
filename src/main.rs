@@ -6,11 +6,13 @@ use clearscreen::{self, clear};
 use colored_text::Colorize;
 use dircpy;
 use serde_json;
-use std::{io, process::exit};
+use std::{ io, process::exit, sync::Arc};
 use tinterm::{Color, Gradient};
 use walkdir::WalkDir;
 use lazy_static::lazy_static;
 use std::sync::RwLock;
+use std::sync::atomic::{AtomicBool, Ordering};
+use ctrlc;
 
 lazy_static! {
     static ref CONFIG_PATH: RwLock<String> = RwLock::new(String::from("config.json"));
@@ -65,13 +67,17 @@ macro_rules! print_purple {
     };
 }
 
-fn string_parse_test (input: &str,input2: &str) {
-    print_primary!("{}{}", input, input2);
+fn string_parse_test (_primary: &str,_cyan: &str, _warn: &str, _error: &str) {
+    clear().expect("yo phone is linging");
+    print_primary!("{}", _primary);
+    print_cyan!("{}", _cyan);
+    let mut _pause = String::new();
+    io::stdin().read_line(&mut _pause).ok();
 }
 
 fn config() {
     //clear().expect("Emotional damage");
-    let togo = "your mom";
+    let togo = "togo";
     print_info!("What da conf doin\nType '{}' for the on-drive test config and press enter for the default main one!", togo);
     let mut action = String::new();
     io::stdin().read_line(&mut action).expect("Faaaaa");
@@ -113,11 +119,15 @@ fn get_config_value(key: &str) -> String {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    
+    let interrupted = Arc::new(AtomicBool::new(false));
+    let flag = interrupted.clone();
+
+    ctrlc::set_handler(move || {
+        flag.store(true, Ordering::SeqCst);
+        print_warn!("Ctrl+C detected, cleaning up...");
+    })?;
     //config();
     loop {
-        string_parse_test("your bed"," is nice");
-        config();
         clear().expect("Failed to clear screen at main menu");
         print_main_menu(); // main menu
         let mut action = String::new();
@@ -127,12 +137,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if action.trim() == "1" {
             clear().expect("Failed to clear screen at option 1");
-            print_info!("Those are all saves that you can backup.");
+            print_info!("Those are all saves that you have in backup.");
 
             // List all save folders
-            let default_saves_path = get_config_value("default_saves_path");
+            let destination_base_path = get_config_value("destination_base_path");
             let mut dirs: Vec<String> = Vec::new();
-            for entry in WalkDir::new(&default_saves_path).min_depth(1).max_depth(1) {
+            for entry in WalkDir::new(&destination_base_path).min_depth(2).max_depth(2) {
                 let entry = entry?;
                 if entry.file_type().is_dir() {
                     dirs.push(entry.path().display().to_string());
@@ -569,6 +579,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         if action.trim() == "change config" {
             config();
+        }
+        if action.trim() == "test" {
+            string_parse_test("your bed"," is nice", "f","f");
         }
     }
 }

@@ -1,21 +1,21 @@
 // Alright so i added some comments, for 1: Myself and two: for you to understand hopefully my thought process on how i built this lil program
 #![allow(unused_macros)]
+#![allow(unused_imports)]
 
 use chrono;
 use clearscreen::{self, clear};
 use colored_text::Colorize;
+use ctrlc;
 use dircpy;
+use lazy_static::lazy_static;
 use serde_json;
-use std::{ io, process::exit, sync::Arc};
+use std::sync::RwLock;
+use std::{io, process::exit};
 use tinterm::{Color, Gradient};
 use walkdir::WalkDir;
-use lazy_static::lazy_static;
-use std::sync::RwLock;
-use std::sync::atomic::{AtomicBool, Ordering};
-use ctrlc;
 
 lazy_static! {
-    static ref CONFIG_PATH: RwLock<String> = RwLock::new(String::from("config.json"));
+    static ref CONFIG_PATH: RwLock<String> = RwLock::new(String::from("config-togo.json"));
 }
 // Color preset for error messages, warnings, informations, and sucess / confirmation messages
 macro_rules! print_error {
@@ -60,14 +60,13 @@ macro_rules! print_cyan {
         println!("{}", format!($($arg)*).cyan())
     };
 }
-
 macro_rules! print_purple {
     ($($arg:tt)*) => {
         println!("{}", format!($($arg)*).rgb(208, 0, 255))
     };
 }
 
-fn string_parse_test (_primary: &str,_cyan: &str, _warn: &str, _error: &str) {
+fn string_parse_test(_primary: &str, _cyan: &str, _warn: &str, _error: &str) {
     clear().expect("yo phone is linging");
     print_primary!("{}", _primary);
     print_cyan!("{}", _cyan);
@@ -78,10 +77,13 @@ fn string_parse_test (_primary: &str,_cyan: &str, _warn: &str, _error: &str) {
 fn config() {
     //clear().expect("Emotional damage");
     let togo = "togo";
-    print_info!("What da conf doin\nType '{}' for the on-drive test config and press enter for the default main one!", togo);
+    print_info!(
+        "What da conf doin\nType '{}' for the on-drive test config and press enter for the default main one!",
+        togo
+    );
     let mut action = String::new();
     io::stdin().read_line(&mut action).expect("Faaaaa");
-    
+
     let mut path = CONFIG_PATH.write().unwrap();
     if action.trim() == "togo" {
         *path = String::from("config-togo.json");
@@ -119,13 +121,13 @@ fn get_config_value(key: &str) -> String {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let interrupted = Arc::new(AtomicBool::new(false));
-    let flag = interrupted.clone();
+    //let interrupted = Arc::new(AtomicBool::new(false));
+    //let flag = interrupted.clone();
 
-    ctrlc::set_handler(move || {
-        flag.store(true, Ordering::SeqCst);
-        print_warn!("Ctrl+C detected, cleaning up...");
-    })?;
+    //ctrlc::set_handler(move || {
+    //    flag.store(true, Ordering::SeqCst);
+    //    print_warn!("Ctrl+C detected, returning to main menu...");
+    //})?;
     //config();
     loop {
         clear().expect("Failed to clear screen at main menu");
@@ -142,7 +144,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // List all save folders
             let destination_base_path = get_config_value("destination_base_path");
             let mut dirs: Vec<String> = Vec::new();
-            for entry in WalkDir::new(&destination_base_path).min_depth(2).max_depth(2) {
+            for entry in WalkDir::new(&destination_base_path)
+                .min_depth(2)
+                .max_depth(2)
+            {
                 let entry = entry?;
                 if entry.file_type().is_dir() {
                     dirs.push(entry.path().display().to_string());
@@ -161,8 +166,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     datetime.format("%Y-%m-%d %H:%M:%S")
                 );
             }
-
-            println!("\nPress Enter to return to main menu...");
+            print_secondary!("\nPress Enter to return to main menu...");
             let mut _pause = String::new();
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("Failed to clear screen at option 1");
@@ -188,7 +192,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 io::stdin()
                     .read_line(&mut use_last)
                     .expect("Failed to read input");
-
                 if use_last.trim().eq_ignore_ascii_case("y") || use_last.trim().is_empty() {
                     last_version.clone()
                 } else {
@@ -251,7 +254,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .and_then(|n| n.to_str())
                         .unwrap_or("backup");
                     // let uuid = uuid::Uuid::new_v4(); If i want to use UUIDs instead of timestamps, unlikely tho, but who knows what my future self have in mind ¯\_(ツ)_/¯
-                    let timestamp = chrono::Local::now().format("%.f").to_string();
+                    let timestamp = chrono::Local::now().format("%3f").to_string();
                     let uuid = uuid::Uuid::new_v4();
                     let full_message = format!("UUID is: {}", uuid);
                     let colored = full_message.gradient(
@@ -266,7 +269,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let full_destination = version_path
                         .join(format!("{}.{}", original_name, timestamp))
                         .join(format!("{}", dir_name));
-
+                    print_info!(
+                        "Trying to copy {} to {}",
+                        selected_path.to_string(),
+                        full_destination.display()
+                    );
                     dircpy::copy_dir(selected_path, &full_destination)?;
                     print_success!("Copied to: {}", full_destination.display());
 
@@ -290,12 +297,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("Invalid input. Please enter a number.");
             }
 
-            println!("\nPress Enter to return to main menu...");
+            print_secondary!("\nPress Enter to return to main menu...");
             let mut _pause = String::new();
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("failed to clear screen");
         }
-        
         if action.trim() == "3" {
             clear().expect("Failed to clear screen at option 2");
 
@@ -383,7 +389,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if num > 0 && num <= dirs.len() {
                     let backup_folder = &dirs[num - 1];
                     print_success!("You selected to restore: {}", backup_folder);
-
                     // Read metadata from the backup folder
                     let metadata_path =
                         std::path::Path::new(backup_folder).join("backup_metadata.json");
@@ -393,30 +398,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .get("original_name")
                         .and_then(|v| v.as_str())
                         .unwrap_or("");
-
                     // The save folder is inside the backup folder with the original name, checked
-                    let save_folder = std::path::Path::new(backup_folder).join(original_name);
+                    let backup_save_folder =
+                        std::path::Path::new(backup_folder).join(original_name);
                     let full_destination =
                         std::path::Path::new(&default_saves_path).join(&original_name);
-
-                    if full_destination.exists() {
-                        print_warn!(
-                            "This is going to deleted the existing save at: {}\nPlease confirm with 'y'",
-                            full_destination.display()
+                    print_warn!(
+                        "This is going to delete the existing save at: {}\nPlease confirm with 'y'",
+                        full_destination.display()
+                    );
+                    let mut deletion_confirmation = String::new();
+                    io::stdin()
+                        .read_line(&mut deletion_confirmation)
+                        .expect("Failed to retrieve user deletion confirmation");
+                    if deletion_confirmation.trim() == "y" {
+                        print_purple!(
+                            "Debug info, full_dstination {}, deletion_confirmation: {}, backup_save_folder: {}, backup_folder: {}, original_name: {}",
+                            full_destination.display(),
+                            deletion_confirmation,
+                            backup_save_folder.display(),
+                            backup_folder,
+                            original_name
                         );
-                        let mut deletion_confirmation = String::new();
-                        io::stdin()
-                            .read_line(&mut deletion_confirmation)
-                            .expect("Failed to retrieve user deletion confirmation");
-                        if deletion_confirmation.trim() == "y" {
+                        print_tertiary!("Arived at std::fs::remove_dir_all(&full_destination)?");
+                        if full_destination.exists() {
                             std::fs::remove_dir_all(&full_destination)?;
-                            print_warn!("Deleted existing save at: {}", full_destination.display());
-                            // Copy the save folder to destination, checked
-                            dircpy::copy_dir(&save_folder, &full_destination)?;
-                            print_success!("Restored to: {}", full_destination.display());
-                        } else {
-                            print_error!("Operation canceled")
                         }
+                        print_tertiary!("passed std::fs::remove_dir_all(&full_destination)?");
+                        print_warn!("Deleted existing save at: {}", full_destination.display());
+                        // Copy the save folder to destination, checked
+                        print_tertiary!(
+                            "Arived at dircpy::copy_dir(&backup_save_folder, &backup_save_folder)?"
+                        );
+                        dircpy::copy_dir(&backup_save_folder, &full_destination)?;
+                        print_tertiary!(
+                            "passed dircpy::copy_dir(&backup_save_folder, &backup_save_folder)?"
+                        );
+                        print_success!("Restored to: {}", full_destination.display());
+                    } else {
+                        print_error!("Operation canceled")
                     }
                 } else {
                     print_error!(
@@ -433,7 +453,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("failed to clear screen");
         }
-        
         if action.trim() == "4" {
             clear().expect("Failed to clear screen at option 4");
 
@@ -476,7 +495,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // List all backup folders (the timestamped ones)
             println!("\nThose are all the backed up saves available:");
-            let default_saves_path = get_config_value("default_saves_path");
             let mut dirs: Vec<String> = Vec::new();
             for entry in WalkDir::new(&destination_base_path)
                 .min_depth(2)
@@ -533,28 +551,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .unwrap_or("");
 
                     // The save folder is inside the backup folder with the original name, checked
-                    let save_folder = std::path::Path::new(backup_folder).join(original_name);
-                    let full_destination =
-                        std::path::Path::new(&default_saves_path).join(&original_name);
-
-                    if full_destination.exists() {
-                        print_warn!(
-                            "This is going to deleted the existing save backup at: {}\nPlease confirm with 'y'",
-                            full_destination.display()
-                        );
-                        let mut deletion_confirmation = String::new();
-                        io::stdin()
-                            .read_line(&mut deletion_confirmation)
-                            .expect("Failed to retrieve user deletion confirmation");
-                        if deletion_confirmation.trim() == "y" {
-                            std::fs::remove_dir_all(&full_destination)?;
-                            print_warn!("Deleted existing save at: {}", full_destination.display());
-                            // Copy the save folder to destination, checked
-                            dircpy::copy_dir(&save_folder, &full_destination)?;
-                            print_success!("Restored to: {}", full_destination.display());
-                        } else {
-                            print_error!("Operation canceled")
-                        }
+                    let backup_save_folder =
+                        std::path::Path::new(backup_folder).join(original_name);
+                    print_purple!(
+                        "save folder is {} and is made using the backup folder {} combined with its original name: {}",
+                        backup_save_folder.display(),
+                        backup_folder,
+                        original_name
+                    );
+                    print_warn!(
+                        "This is going to delete the existing save backup at: {}\nPlease confirm with 'y'",
+                        backup_folder
+                    );
+                    let mut deletion_confirmation = String::new();
+                    io::stdin()
+                        .read_line(&mut deletion_confirmation)
+                        .expect("Failed to retrieve user deletion confirmation");
+                    if deletion_confirmation.trim() == "y" {
+                        std::fs::remove_dir_all(&backup_folder)?;
+                        print_warn!("Deleted existing save backup at: {}", backup_folder);
+                    } else {
+                        print_error!("Backup deletion canceled")
                     }
                 } else {
                     print_error!(
@@ -571,7 +588,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             io::stdin().read_line(&mut _pause).ok();
             clear().expect("failed to clear screen");
         }
-        
         if action.trim() == "exit" {
             clear().expect("Failed to clear screen at exit");
             print_primary!("Exiting program. Goodbye!");
@@ -581,7 +597,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             config();
         }
         if action.trim() == "test" {
-            string_parse_test("your bed"," is nice", "f","f");
+            string_parse_test("your bed", " is nice", "f", "f");
         }
     }
 }

@@ -8,14 +8,16 @@ use colored_text::Colorize;
 use ctrlc;
 use dircpy;
 use lazy_static::lazy_static;
-use serde_json;
-use std::sync::RwLock;
+use serde_json::{self, to_string};
+use std::fs::read;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, RwLock};
 use std::{io, process::exit};
 use tinterm::{Color, Gradient};
 use walkdir::WalkDir;
 
 lazy_static! {
-    static ref CONFIG_PATH: RwLock<String> = RwLock::new(String::from("config-togo.json"));
+    static ref CONFIG_PATH: RwLock<String> = RwLock::new(String::from("config.json"));
 }
 // Color preset for error messages, warnings, informations, and sucess / confirmation messages
 macro_rules! print_error {
@@ -94,10 +96,22 @@ fn config() {
 
 // Premade TUI menu text with tinterm gradient color
 fn print_main_menu() {
-    let multiline = "Available commands:\n1 (lists all backed up saves)\n2 (copy a save folder from the list)\n3 (restore backup)\n4 (Delete backup)\nexit (quit the program)";
+    let multiline = "Available commands:
+1 (lists all backed up saves)
+2 (copy a save folder from the list)
+3 (restore backup)
+4 (Delete backup)
+test (String select coloring function test)
+change config (to change the config between togo and main one)
+exit (quit the program)";
+
     println!(
         "{}",
-        multiline.gradient(Color::CYAN, Color::MAGENTA, Some(true))
+        multiline.gradient(
+            Color::ROYAL_BLUE,
+            Color::LIGHT_GOLDENROD_YELLOW,
+            Some(false)
+        )
     );
 }
 
@@ -123,12 +137,11 @@ fn get_config_value(key: &str) -> String {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     //let interrupted = Arc::new(AtomicBool::new(false));
     //let flag = interrupted.clone();
-
+    //
     //ctrlc::set_handler(move || {
+    //    print_cyan!("test");
     //    flag.store(true, Ordering::SeqCst);
-    //    print_warn!("Ctrl+C detected, returning to main menu...");
     //})?;
-    //config();
     loop {
         clear().expect("Failed to clear screen at main menu");
         print_main_menu(); // main menu
@@ -142,28 +155,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             print_info!("Those are all saves that you have in backup.");
 
             // List all save folders
-            let destination_base_path = get_config_value("destination_base_path");
-            let mut dirs: Vec<String> = Vec::new();
-            for entry in WalkDir::new(&destination_base_path)
-                .min_depth(2)
-                .max_depth(2)
-            {
+            print_info!("\nThose are all the save folders available:");
+            let default_saves_path = get_config_value("default_saves_path");
+
+            // Change 1: Store both the path string and the SystemTime
+            let mut dirs: Vec<(String, std::time::SystemTime)> = Vec::new();
+
+            for entry in WalkDir::new(&default_saves_path).min_depth(1).max_depth(1) {
                 let entry = entry?;
                 if entry.file_type().is_dir() {
-                    dirs.push(entry.path().display().to_string());
+                    // Change 2: Fetch metadata immediately
+                    let metadata = entry.metadata()?;
+                    if let Ok(modified) = metadata.modified() {
+                        dirs.push((entry.path().display().to_string(), modified));
+                    }
                 }
             }
 
-            // Display numbered list, was a lil bit harder but i got it with some stackoverflow help
-            for (index, dir) in dirs.iter().enumerate() {
-                let metadata = std::fs::metadata(dir)?;
-                let modified = metadata.modified()?;
-                let datetime: chrono::DateTime<chrono::Local> = modified.into();
+            // Change 3: Sort by modification time (Descending = Newest First)
+            dirs.sort_by(|a, b| b.1.cmp(&a.1));
+
+            // Display numbered list, again
+            for (index, (dir, modified)) in dirs.iter().enumerate() {
+                // Change 4: Use the stored timestamp
+                let datetime: chrono::DateTime<chrono::Local> = (*modified).into();
                 println!(
                     "{}: {} last modified: {}",
                     index + 1,
                     dir,
-                    datetime.format("%Y-%m-%d %H:%M:%S")
+                    datetime.format("%d-%m-%Y %H:%M:%S")
                 );
             }
             print_secondary!("\nPress Enter to return to main menu...");
@@ -177,7 +197,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Load configuration, logic that i'll reuse a lot of time, most likelly :3
             let mut config = load_config().unwrap_or_else(|_| serde_json::json!({}));
             let last_version = get_config_value("last_version");
-
             // Ask user if they want to use the last version, cuz what if they got an update or smsh
             let version = if last_version.is_empty() {
                 println!("No last version found, please enter the curent game version bollow:");
@@ -203,51 +222,54 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     version_input.trim().to_string()
                 }
             };
-
             // Create destination path
             let destination_base_path = get_config_value("destination_base_path");
             let version_path = std::path::Path::new(&destination_base_path).join(&version);
-
             config["last_version"] = serde_json::Value::String(version.clone());
             let config_path = CONFIG_PATH.read().unwrap();
             std::fs::write(&*config_path, serde_json::to_string_pretty(&config)?)?;
-
             print_success!("Using version directory: {}", version_path.display());
-
             // List all save folders
             print_info!("\nThose are all the save folders available:");
             let default_saves_path = get_config_value("default_saves_path");
-            let mut dirs: Vec<String> = Vec::new();
+            let mut dirs: Vec<(String, std::time::SystemTime)> = Vec::new();
+
             for entry in WalkDir::new(&default_saves_path).min_depth(1).max_depth(1) {
                 let entry = entry?;
                 if entry.file_type().is_dir() {
-                    dirs.push(entry.path().display().to_string());
+                    // Change 2: Fetch metadata immediately
+                    let metadata = entry.metadata()?;
+                    if let Ok(modified) = metadata.modified() {
+                        dirs.push((entry.path().display().to_string(), modified));
+                    }
                 }
             }
+            dirs.sort_by(|a, b| b.1.cmp(&a.1));
             // Display numbered list, again
-            for (index, dir) in dirs.iter().enumerate() {
-                let metadata = std::fs::metadata(dir)?;
-                let modified = metadata.modified()?;
-                let datetime: chrono::DateTime<chrono::Local> = modified.into();
+            for (index, (dir, modified)) in dirs.iter().enumerate() {
+                // Change 4: Use the stored timestamp
+                let datetime: chrono::DateTime<chrono::Local> = (*modified).into();
                 println!(
                     "{}: {} last modified: {}",
                     index + 1,
                     dir,
-                    datetime.format("%Y-%m-%d %H:%M:%S")
+                    datetime.format("%d-%m-%Y %H:%M:%S")
                 );
             }
-
             // Get user selection
             print_info!("\nEnter the number of the directory you want to copy:");
+            //if bool interrupted = true {
+            //    print_cyan!("Keyboard interupt")
+            //}
             let mut choice = String::new();
             io::stdin()
                 .read_line(&mut choice)
                 .expect("Failed to read input");
             if let Ok(num) = choice.trim().parse::<usize>() {
                 if num > 0 && num <= dirs.len() {
-                    let selected_path = &dirs[num - 1];
+                    // Change 5: Access the path string from the tuple (.0)
+                    let selected_path = &dirs[num - 1].0;
                     print_success!("You selected: {}", selected_path);
-
                     // Copy logic, nice
                     let dir_name = std::path::Path::new(selected_path)
                         .file_name()
@@ -276,7 +298,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
                     dircpy::copy_dir(selected_path, &full_destination)?;
                     print_success!("Copied to: {}", full_destination.display());
-
                     // Create metadata file, hey that's a new one, i didnt implemented the damn label thingy yet lol, but fine for now
                     let metadata = serde_json::json!({
                         "original_name": original_name,
@@ -311,7 +332,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .get("last_version")
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string())
-                .unwrap_or_else(|| String::from("0.3.0"));
+                .unwrap();
 
             // Ask user if they want to use the last version
             print_warn!("Last used version was: {}\nUse it? (y/n)", last_version);
@@ -346,10 +367,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("\nThose are all the backed up saves available:");
             let default_saves_path = get_config_value("default_saves_path");
             let mut dirs: Vec<String> = Vec::new();
-            for entry in WalkDir::new(&destination_base_path)
-                .min_depth(2)
-                .max_depth(2)
-            {
+            for entry in WalkDir::new(&version_path).min_depth(1).max_depth(1) {
                 let entry = entry?;
                 if entry.file_type().is_dir() {
                     // Only include folders that have a backup_metadata.json
@@ -373,7 +391,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .get("created_at")
                             .and_then(|v| v.as_str())
                             .unwrap_or("?");
-                        println!("{}: {} (created: {})", index + 1, original, created);
+                        let backup_name = meta
+                            .get("backup_name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("?");
+                        println!(
+                            "{}: {} (created: {}, backup name: {})",
+                            index + 1,
+                            original,
+                            created,
+                            backup_name
+                        );
                     }
                 }
             }
@@ -523,7 +551,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .get("created_at")
                             .and_then(|v| v.as_str())
                             .unwrap_or("?");
-                        println!("{}: {} (created: {})", index + 1, original, created);
+                        let backup_name = meta
+                            .get("backup_name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("?");
+                        println!(
+                            "{}: {} (created: {}, backup name: {})",
+                            index + 1,
+                            original,
+                            created,
+                            backup_name
+                        );
                     }
                 }
             }

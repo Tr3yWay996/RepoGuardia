@@ -1,73 +1,28 @@
 <script setup lang="ts">
-import { ref, VueElement } from "vue";
 import { invoke } from "@tauri-apps/api/core";
+async function exit_app(){
+  await invoke("exit_app")
+}
 
-const greetMsg = ref("");
-const name = ref("");
-const testMsg = ref("");
-const count = ref(0);
-const resetCountMsg = ref("");
-const trigger = ref(false);
-async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg.value = await invoke("greet", { name: name.value });
-}
-async function test() {
-    count.value += 1;
-    testMsg.value = await invoke("test", {
-        test: `Count value: ${count.value}`,
-    });
-}
-async function resetCount() {
-    count.value = 0;
-    testMsg.value = await invoke("test", {
-        test: `Reseted count to ${count.value}`,
-    });
-}
-async function open_konsole() {
-    trigger.value = true;
-    await invoke("open_konsole");
-}
 </script>
 
 <template>
-    <main class="container">
-        <div>
-            <h1>Welcome to RepoGuardia.</h1>
-            <p1
-                >A tool to backup your R.E.P.O game saves with everything you
-                could need to manage them!</p1
-            >
-        </div>
-        <div class="conteuneur-bouton">
-            <button @click.self="test">test</button>
-            <button @click.self="resetCount">reset count</button>
-            <button @click.self="open_konsole">open konsole</button>
-            <button @click.self="open_konsole">open konsole</button>
-        </div>
-        <p>{{ testMsg }}</p>
-        <p>{{ resetCountMsg }}</p>
+  <div class="app-layout">
+    <header class="top-bar">
+      <!-- your main menu UI goes here -->
+      <button @click="$router.push('/')">Main menu</button>
+      <button @click="$router.push('/settings')">Settings</button>
+      <button style="color:purple"@click.self="exit_app">Click = boom</button>
+    </header>
+    <main class="page-area">
+      <RouterView />
     </main>
+  </div>
 </template>
-<style scoped>
-.conteuneur-bouton {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    font-size: x-large;
-}
-.conteuneur-bouton > button {
-    flex: 0 0 calc(50% - 5px); /* 2 per row */
-}
-.logo.vite:hover {
-    filter: drop-shadow(0 0 2em #747bff);
-}
 
-.logo.vue:hover {
-    filter: drop-shadow(0 0 2em #249b73);
-}
+<style scoped>
 </style>
+
 <style>
 :root {
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
@@ -92,17 +47,6 @@ async function open_konsole() {
     flex-direction: column;
     justify-content: center;
     text-align: center;
-}
-
-.logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: 0.75s;
-}
-
-.logo.tauri:hover {
-    filter: drop-shadow(0 0 2em #24c8db);
 }
 
 .row {
@@ -133,7 +77,7 @@ button {
     font-weight: 500;
     font-family: inherit;
     color: #0f0f0f;
-    background-color: #ffffff;
+    background-color: #ffd500;
     transition: border-color 0.25s;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
@@ -143,10 +87,10 @@ button {
 }
 
 button:hover {
-    border-color: #396cd8;
+    border-color: #ffff0000;
 }
 button:active {
-    border-color: #396cd8;
+    border-color: #40ff00;
     background-color: #e8e8e8;
 }
 

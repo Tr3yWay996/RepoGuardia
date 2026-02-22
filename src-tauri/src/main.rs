@@ -1,41 +1,22 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use chrono;
-use clearscreen::{self, clear};
-use dircpy;
+mod backup_convertion;
+mod some_config_action;
+mod some_listing_action;
+mod restore;
 use lazy_static::lazy_static;
-use serde_json::{self, to_string};
-use std::fs::read;
-use std::path::{self, Path};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, RwLock};
-use std::{io, process::exit};
-use tauri_plugin_shell::ShellExt;
-use walkdir::WalkDir;
-use chrono::Local;
-use chrono::DateTime;
+use serde_json;
+use some_config_action::*;
 use std::path::PathBuf;
-use tauri::Manager;
-use std::fs;
+use std::path::{Path};
+use std::sync::{RwLock};
+use tauri_plugin_shell::ShellExt;
 
 // Static config state
 lazy_static! {
     static ref CONFIG_PATH: RwLock<Option<PathBuf>> = RwLock::new(None);
 }
-
-fn init_config_path(app_handle: &tauri::AppHandle) {
-    let config_dir = app_handle.path().app_config_dir().expect("Failed to get config dir");
-    
-    // Create the directory if it doesn't exist
-    fs::create_dir_all(&config_dir).expect("Failed to create config directory");
-    
-    let mut path = config_dir;
-    path.push("config-linux.json");  // or config-linux.json if you prefer
-    let mut guard = CONFIG_PATH.write().unwrap();
-    *guard = Some(path);
-}
-
 
 fn main() {
     #[cfg(target_os = "linux")]
@@ -46,7 +27,8 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
-        .setup(|app| {  // <-- ADD THIS BLOCK
+        .setup(|app| {
+            // <-- ADD THIS BLOCK
             init_config_path(&app.handle());
             Ok(())
         })
@@ -55,7 +37,13 @@ fn main() {
             test,
             open_konsole,
             exit_app,
-            list_saves
+            list_saves,
+            list_backup,
+            do_backup,
+            get_config_value,
+            save_config,
+            load_config,
+            do_restore,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -81,89 +69,47 @@ async fn open_konsole(app: tauri::AppHandle) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     Ok(())
 }
+#[tauri::command]
+fn get_config_value(key: &str) -> String {
+    some_config_action::get_config_value(key)
+}
+
+#[tauri::command]
+fn save_config(config: serde_json::Value) -> Result<(), String> {
+    some_config_action::save_config(config)
+}
+
+#[tauri::command]
+fn load_config() -> Result<serde_json::Value, String> {
+    some_config_action::load_config().map_err(|e| e.to_string())
+}
 
 #[tauri::command]
 fn exit_app(handle: tauri::AppHandle) {
     handle.exit(0); // 0 = normal exit code
 }
 
-fn load_config() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-    let path_guard = CONFIG_PATH.read().unwrap();
-    let path = path_guard.as_ref().ok_or("Config not initialized")?;  // <-- Unwrap the Option
-    let config_contents = std::fs::read_to_string(path)?;  // <-- PathBuf auto-derefs to Path
-    let config: serde_json::Value = serde_json::from_str(&config_contents)?;
-    Ok(config)
-}
-fn get_config_value(key: &str) -> String {
-    let path_guard = CONFIG_PATH.read().unwrap();
-    let config_path = match path_guard.as_ref() {
-        Some(p) => p,
-        None => {
-            eprintln!("CONFIG DEBUG: CONFIG_PATH is None - init_config_path wasn't called");
-            return String::new();
-        }
-    };
-    
-    eprintln!("CONFIG DEBUG: Looking for config at: {:?}", config_path);
-    
-    if !config_path.exists() {
-        eprintln!("CONFIG DEBUG: File doesn't exist!");
-        return String::new();
-    }
-    
-    match load_config() {
-        Ok(config) => {
-            eprintln!("CONFIG DEBUG: Config loaded: {:?}", config);
-            config.get(key).and_then(|v| v.as_str()).map(|s| s.to_string()).unwrap_or_default()
-        }
-        Err(e) => {
-            eprintln!("CONFIG DEBUG: Failed to load config: {}", e);
-            String::new()
-        }
-    }
-}
-
-fn __settings() {
-
-}
+fn __settings() {}
 
 // 1 List saves to backup (Raw)
 #[tauri::command]
-fn list_saves() -> Result<Vec<(String, String)>, String> {
-    let default_saves_path = get_config_value("default_saves_path");
-    let mut dirs: Vec<(String, std::time::SystemTime)> = Vec::new();
-
-    for entry in WalkDir::new(&default_saves_path).min_depth(1).max_depth(1) {
-        let entry = entry.map_err(|e| e.to_string())?;
-        if entry.file_type().is_dir() {
-            let metadata = entry.metadata().map_err(|e| e.to_string())?;
-            if let Ok(modified) = metadata.modified() {
-                dirs.push((entry.path().display().to_string(), modified));
-            }
-        }
-    }
-
-    dirs.sort_by(|a, b| b.1.cmp(&a.1));
-
-    let result: Vec<(String, String)> = dirs
-        .into_iter()
-        .map(|(full_path, modified)| {
-            // Extract just the folder name (works on Windows AND Linux)
-            let path = Path::new(&full_path);
-            let folder_name = path
-                .file_name()                           // Gets "REPO_SAVE_2026_02_01_17_21_38"
-                .and_then(|n| n.to_str())              // Convert to &str
-                .unwrap_or("unknown")                  // Fallback
-                .to_string();
-            
-            let datetime: DateTime<Local> = modified.into();
-            let formatted = datetime.format("%d-%m-%Y %H:%M:%S").to_string();
-            (folder_name, formatted)                    // Return ("REPO_SAVE_...", "03-02-2026...")
-        })
-        .collect();
-
-    Ok(result)
+fn list_backup() -> Result<Vec<(String, String)>, String> {
+    some_listing_action::list_backup()
 }
+
+#[tauri::command]
+fn list_saves() -> Result<Vec<(String, String)>, String> {
+    some_listing_action::list_saves()
+}
+
 // 2 Backup save (Raw)
+#[tauri::command]
+fn do_backup(save_name: String) -> Result<(), String> {
+    backup_convertion::do_backup(save_name)
+}
 // 3 Restore backup (Raw)
+#[tauri::command]
+fn do_restore(save_name: String) -> Result<(), String> {
+    restore::do_restore(save_name)
+}
 // 4 Restoring backup logic (Raw)

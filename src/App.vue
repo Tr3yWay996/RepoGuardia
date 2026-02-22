@@ -20,10 +20,7 @@ async function exit_app(){
   </div>
 </template>
 
-<style scoped>
-</style>
-
-<style>
+<style >
 :root {
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     font-size: 16px;

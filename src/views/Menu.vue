@@ -1,45 +1,29 @@
 <script setup lang="ts">
-import { ref, stop, VueElement } from "vue";
+import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import { app } from "@tauri-apps/api";
-import { getTauriVersion } from "@tauri-apps/api/app";
 
-const greetMsg = ref("");
-const name = ref("");
 const testMsg = ref("");
-const count = ref(0);
 const resetCountMsg = ref("");
 const trigger = ref(false);
-const version = ("")
-async function test() {
-    count.value += 1;
-    testMsg.value = await invoke("test", {
-        test: `Count value: ${count.value}`,
-    });
-}
-async function resetCount() {
-    count.value = 0;
-    testMsg.value = await invoke("test", {
-        test: `Reseted count to ${count.value}`,
-    });
-}
+//const version = ("")
+
+//async function test() {
+//    count.value += 1;
+//    testMsg.value = await invoke("test", {
+//        test: `Count value: ${count.value}`,
+//    });
+//}
+//async function resetCount() {
+//    count.value = 0;
+//    testMsg.value = await invoke("test", {
+//        test: `Reseted count to ${count.value}`,
+//    });
+//}
 async function open_konsole() {
     trigger.value = true;
     await invoke("open_konsole");
 }
-async function list_saves() {
-  
-}
-async function restore_backup() {
-  
-}
-async function list_backups() {
-  
-}
 async function delete_backups() {
-  
-}
-async function backup_saves() {
   
 }
 async function mystery() {
@@ -51,17 +35,17 @@ async function mystery() {
     <main class="container">
         <div>
             <h1>Welcome to RepoGuardia.</h1>
-            <p1
+            <p
                 >A tool to backup your R.E.P.O game saves with everything you
-                could need to manage them!</p1
+                could need to manage them!</p
             >
         </div>
         <div class="conteuneur-bouton">
             <button style="color:bisque"        @click.self="$router.push('/saves_list')">List all saves</button>
-            <button style="color:orange"        @click.self="restore_backup">Restore backup</button>
-            <button style="color:bisque"        @click.self="list_backups">List all backups</button>
+            <button style="color:orange"        @click.self="$router.push('/do_restore')">Restore backup</button>
+            <button style="color:bisque"        @click.self="$router.push('/backup_list')">List all backups</button>
             <button style="color:red"           @click.self="delete_backups">Delete backup</button>
-            <button style="color:greenyellow"   @click.self="backup_saves">backup save</button>
+            <button style="color:greenyellow"   @click.self="$router.push('/do_backup')">backup save</button>
             <button style="color:purple"        @click.self="mystery">Mystery button</button>
             <button style="color:brown"         @click.self="open_konsole">Shell execution :3</button>
         </div>

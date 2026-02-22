@@ -16,8 +16,11 @@ onMounted(async () => {
       {{ index + 1 }}: {{ path }} <span class="date">last modified: {{ date }}</span>
     </li>
   </ul>
+  <div class="choice_input">
+    Choose the save to get info from <input></input>
+  </div>
 </template>
 
-<style>
-.date { color: #666; font-size: 0.9em; }
+<style scoped>
+.date { color: #b1ff5f; font-size: 0.9em; }
 </style>

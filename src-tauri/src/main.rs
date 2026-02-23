@@ -11,7 +11,7 @@ use some_config_action::*;
 use std::path::PathBuf;
 use std::path::{Path};
 use std::sync::{RwLock};
-use tauri_plugin_shell::ShellExt;
+//use tauri_plugin_shell::ShellExt;
 
 // Static config state
 lazy_static! {
@@ -32,9 +32,9 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
-            test,
-            open_konsole,
+            //greet,
+            //test,
+            //open_konsole,
             exit_app,
             list_saves,
             list_backup,
@@ -47,27 +47,27 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-#[tauri::command]
-fn greet(name: &str) -> String {
-    if name.trim().is_empty() {
-        return "Hello! You've been greeted from Rust!".into();
-    }
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
-fn test(test: &str) -> String {
-    format!("{}", test)
-}
-#[tauri::command]
-async fn open_konsole(app: tauri::AppHandle) -> Result<(), String> {
-    app.shell()
-        .command("konsole")
-        .args(&["-e", "bash", "-c", "echo 'Hello from Tauri my good Sir !' && TCP=$(curl -s ipv4.wtfismyip.com | sed 's/^\\([0-9]*\\)\\.[0-9]*\\.[0-9]*\\.\\([0-9]*\\)$/\\1.***.***.\\2/') && echo \"Hello you and your $TCP IP\" && RAM=$(fastfetch | grep Memory: | grep -oP '/ \\K[0-9.]+ [A-Za-z]+') && echo \"Wow, hold on here, you got a whapping $RAM of ram! Verify your doors are well locked!\" && read -p 'Press Enter to close...'"])
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    Ok(())
-}
+//#[tauri::command]
+//fn greet(name: &str) -> String {
+//    if name.trim().is_empty() {
+//        return "Hello! You've been greeted from Rust!".into();
+//    }
+//    format!("Hello, {}! You've been greeted from Rust!", name)
+//}
+//
+//#[tauri::command]
+//fn test(test: &str) -> String {
+//    format!("{}", test)
+//}
+//#[tauri::command]
+//async fn open_konsole(app: tauri::AppHandle) -> Result<(), String> {
+//    app.shell()
+//        .command("konsole")
+//        .args(&["-e", "bash", "-c", "echo 'Hello from Tauri my good Sir !' && TCP=$(curl -s ipv4.wtfismyip.com | sed 's/^\\([0-9]*\\)\\.[0-9]*\\.[0-9]*\\.\\([0-9]*\\)$/\\1.***.***.\\2/') && echo \"Hello you and your $TCP IP\" && RAM=$(fastfetch | grep Memory: | grep -oP '/ \\K[0-9.]+ [A-Za-z]+') && echo \"Wow, hold on here, you got a whapping $RAM of ram! Verify your doors are well locked!\" && read -p 'Press Enter to close...'"])
+//        .spawn()
+//        .map_err(|e| e.to_string())?;
+//    Ok(())
+//}
 #[tauri::command]
 fn get_config_value(key: &str) -> String {
     some_config_action::get_config_value(key)

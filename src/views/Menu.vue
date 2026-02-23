@@ -19,7 +19,7 @@ const trigger = ref(false);
 //        test: `Reseted count to ${count.value}`,
 //    });
 //}
-async function open_konsole() {
+/* async function open_konsole() {
     trigger.value = true;
     await invoke("open_konsole");
 }
@@ -28,7 +28,7 @@ async function delete_backups() {
 }
 async function mystery() {
     console.log('fak u')
-}
+} */
 </script>
 
 <template>

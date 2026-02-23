@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
+//import { invoke } from "@tauri-apps/api/core";
 
 const testMsg = ref("");
 const resetCountMsg = ref("");
-const trigger = ref(false);
+//const trigger = ref(false);
 //const version = ("")
 
 //async function test() {

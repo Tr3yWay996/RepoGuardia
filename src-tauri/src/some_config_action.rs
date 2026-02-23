@@ -14,19 +14,20 @@ pub fn init_config_path(app_handle: &tauri::AppHandle) {
         .path()
         .app_config_dir()
         .expect("Failed to get config dir");
-
-    // Create the directory if it doesn't exist
     fs::create_dir_all(&config_dir).expect("Failed to create config directory");
 
     let mut path = config_dir;
-    path.push("config-linux.json"); // or config-linux.json if you prefer
+    #[cfg(target_os = "linux")]
+    path.push("config-linux.json");
+    #[cfg(target_os = "windows")]
+    path.push("config-windows.json");
     let mut guard = CONFIG_PATH.write().unwrap();
     *guard = Some(path);
 }
 pub fn load_config() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     let path_guard = CONFIG_PATH.read().unwrap();
-    let path = path_guard.as_ref().ok_or("Config not initialized")?; // <-- Unwrap the Option
-    let config_contents = std::fs::read_to_string(path)?; // <-- PathBuf auto-derefs to Path
+    let path = path_guard.as_ref().ok_or("Config not initialized")?;
+    let config_contents = std::fs::read_to_string(path)?;
     let config: serde_json::Value = serde_json::from_str(&config_contents)?;
     Ok(config)
 }

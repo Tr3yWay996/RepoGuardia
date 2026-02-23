@@ -7,17 +7,15 @@ pub fn do_backup(save_name: String) -> Result<(), String> {
     //let default_saves_path = get_config_value("destination_base_path");
     let default_backup_place = get_config_value("destination_base_path");
     let backup_folder = format!("{}.{}", save_name, id);
-    let full_backup_path = format!("{}/{}", default_backup_place, backup_folder );
-    let backup_root = PathBuf::from(&full_backup_path).join(&save_name);
+    let full_backup_path = PathBuf::from(&default_backup_place).join(&backup_folder);
+    let backup_root = full_backup_path.join(&save_name);
 /*     println!("id value is: {}", id);
     println!("default_saves_path value is: {}", default_saves_path);
     println!("save_name value is: {}", save_name);
     println!("full_save_path value is: {}", full_save_path.display());
     println!("default_backup_place value is: {}", default_backup_place);
     println!("backup_folder value is: {}", backup_folder);
-    println!("full_backup_path value is: {}", full_backup_path);
- */    let backup_path = PathBuf::from(&full_backup_path);
-/*     println!("backup_path value is: {}", backup_path.display());
+    println!("full_backup_path value is: {}", full_backup_path.display());
  */    std::fs::create_dir_all(&backup_root).map_err(|e| e.to_string())?;
  /*    println!("backup_root value is: {}", backup_root.display()); */
 
@@ -27,7 +25,7 @@ pub fn do_backup(save_name: String) -> Result<(), String> {
         "created_at": chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
         "label": ""
     });
-    let metadata_path = backup_path.join("backup_metadata.json");
+    let metadata_path = full_backup_path.join("backup_metadata.json");
     let metadata_str = serde_json::to_string_pretty(&metadata).map_err(|e| e.to_string())?;
     std::fs::write(&metadata_path, metadata_str).map_err(|e| e.to_string())?;
 /*     println!("Metadata saved to: {}", metadata_path.display());

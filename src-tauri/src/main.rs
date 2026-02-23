@@ -28,7 +28,6 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
-            // <-- ADD THIS BLOCK
             init_config_path(&app.handle());
             Ok(())
         })
@@ -112,4 +111,5 @@ fn do_backup(save_name: String) -> Result<(), String> {
 fn do_restore(save_name: String) -> Result<(), String> {
     restore::do_restore(save_name)
 }
-// 4 Restoring backup logic (Raw)
+// 4 Delete backup
+// 5 Rename backup

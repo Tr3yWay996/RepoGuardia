@@ -44,10 +44,10 @@ async function mystery() {
             <button style="color:bisque"        @click.self="$router.push('/saves_list')">List all saves</button>
             <button style="color:orange"        @click.self="$router.push('/do_restore')">Restore backup</button>
             <button style="color:bisque"        @click.self="$router.push('/backup_list')">List all backups</button>
-            <button style="color:red"           @click.self="delete_backups">Delete backup</button>
-            <button style="color:greenyellow"   @click.self="$router.push('/do_backup')">backup save</button>
-            <button style="color:purple"        @click.self="mystery">Mystery button</button>
-            <button style="color:brown"         @click.self="open_konsole">Shell execution :3</button>
+<!--             <button style="color:red"           @click.self="delete_backups">Delete backup</button>
+ -->            <button style="color:greenyellow"   @click.self="$router.push('/do_backup')">backup save</button>
+<!--             <button style="color:purple"        @click.self="mystery">Mystery button</button>
+            <button style="color:brown"         @click.self="open_konsole">Shell execution :3</button> -->
         </div>
         <p>{{ testMsg }}</p>
         <p>{{ resetCountMsg }}</p>
@@ -63,7 +63,7 @@ async function mystery() {
     font-weight: 400;
 
     color: #fffefe;
-    background-image: url(/Fond-RepoGuardia.png);
+    background-image: url(/background.png);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

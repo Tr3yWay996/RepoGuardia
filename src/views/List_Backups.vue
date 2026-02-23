@@ -8,16 +8,6 @@ const status = ref('')
 onMounted(async () => {
   saves.value = await invoke('list_backup')
 })
-
-async function restore(path) {
-  status.value = `Restoring ${path}...`
-  try {
-    await invoke('do_restore', { saveName: path })
-    status.value = `Restored ${path} successfully!`
-  } catch (e) {
-    status.value = `Error: ${e}`
-  }
-}
 </script>
 
 <template>
@@ -25,7 +15,6 @@ async function restore(path) {
   <ul>
     <li v-for="([path, date], index) in saves" :key="path">
       {{ index + 1 }}: {{ path }} <span class="date">last modified: {{ date }}</span>
-      <button @click="restore(path)">Restore</button>
     </li>
   </ul>
   <p v-if="status" class="status">{{ status }}</p>

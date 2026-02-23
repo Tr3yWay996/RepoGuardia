@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+//import { ref } from "vue";
 //import { invoke } from "@tauri-apps/api/core";
 
-const testMsg = ref("");
-const resetCountMsg = ref("");
+//const testMsg = ref("");
+//const resetCountMsg = ref("");
 //const trigger = ref(false);
 //const version = ("")
 
@@ -49,8 +49,8 @@ async function mystery() {
 <!--             <button style="color:purple"        @click.self="mystery">Mystery button</button>
             <button style="color:brown"         @click.self="open_konsole">Shell execution :3</button> -->
         </div>
-        <p>{{ testMsg }}</p>
-        <p>{{ resetCountMsg }}</p>
+<!--         <p>{{ testMsg }}</p>
+        <p>{{ resetCountMsg }}</p> -->
     </main>
 </template>
 

@@ -63,7 +63,8 @@ async function mystery() {
     font-weight: 400;
 
     color: #fffefe;
-    background-image: url(/background.png);
+    background: #043d00;
+    background: linear-gradient(25deg, rgb(5, 72, 0) 0%, rgba(54, 0, 0, 1) 50%, rgba(2, 0, 99, 1) 100%);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

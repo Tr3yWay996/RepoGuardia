@@ -9,7 +9,6 @@ async function exit_app(){
 <template>
   <div class="app-layout">
     <header class="top-bar">
-      <!-- your main menu UI goes here -->
       <button @click="$router.push('/')">Main menu</button>
       <button @click="$router.push('/settings')">Settings</button>
       <button style="color:purple"@click.self="exit_app">Click = boom</button>
@@ -21,6 +20,31 @@ async function exit_app(){
 </template>
 
 <style >
+html, body, #app {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.top-bar {
+    flex-shrink: 0;
+}
+
+.page-area {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
 :root {
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     font-size: 16px;

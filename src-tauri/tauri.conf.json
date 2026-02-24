@@ -15,7 +15,7 @@
         "title": "repoguardia-gui",
         "width": 800,
         "height": 600,
-        "resizable": false,
+        "resizable": true,
         "maximizable": false
       }
     ],

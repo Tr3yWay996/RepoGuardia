@@ -47,5 +47,5 @@ function formatName(raw) {
   margin: 0;
   padding: 0 0 0 1.2rem;
 }
-.date { color: #b1ff5f; font-size: 0.9em; }
+.date { color: bisque; font-size: 0.9em; }
 </style>

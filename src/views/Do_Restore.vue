@@ -73,7 +73,7 @@ async function submitRestore() {
     padding: 0 0 0 1.2rem;
 }
 .date {
-    color: #ff7a7a;
+    color: orange;
     font-size: 0.9em;
 }
 .choice_input {

@@ -5,6 +5,7 @@ mod backup_convertion;
 mod some_config_action;
 mod some_listing_action;
 mod restore;
+mod delete;
 use lazy_static::lazy_static;
 use serde_json;
 use some_config_action::*;
@@ -43,6 +44,7 @@ fn main() {
             save_config,
             load_config,
             do_restore,
+            do_delete,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -112,4 +114,8 @@ fn do_restore(save_name: String) -> Result<(), String> {
     restore::do_restore(save_name)
 }
 // 4 Delete backup
+#[tauri::command]
+fn do_delete(save_name: String) -> Result<(), String> {
+    delete::do_delete(save_name)
+}
 // 5 Rename backup

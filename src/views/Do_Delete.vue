@@ -7,7 +7,7 @@ const inputText = ref("");
 const status = ref("");
 
 onMounted(async () => {
-    saves.value = await invoke("list_saves");
+    saves.value = await invoke("list_backup");
 });
 
 function formatName(raw) {
@@ -18,14 +18,14 @@ function formatName(raw) {
     return segment
 }
 
-async function submitBackup() {
+async function submitBackupDelete() {
     const index = parseInt(inputText.value) - 1;
     if (index >= 0 && index < saves.value.length) {
-        status.value = "Backing up...";
+        status.value = "Deleting backup...";
         const selectedSave = saves.value[index][0];
         try {
-            await invoke("do_backup", { saveName: selectedSave });
-            status.value = `Successfully backed up: ${selectedSave}`;
+            await invoke("do_delete", { saveName: selectedSave });
+            status.value = `Successfully deleted: ${selectedSave}`;
         } catch (e) {
             status.value = `Error: ${e}`;
         }
@@ -37,7 +37,7 @@ async function submitBackup() {
 
 <template>
     <div class="view-layout">
-        <h1>Saves available:</h1>
+        <h1>Backup available:</h1>
         <ul>
             <li v-for="([path, date], index) in saves" :key="path">
                 {{ index + 1 }}: {{ formatName(path) }}
@@ -45,9 +45,9 @@ async function submitBackup() {
             </li>
         </ul>
         <div class="choice_input">
-            Enter the number of the save to backup:
+            Enter the number of the backup to delete:
             <input type="number" v-model="inputText" placeholder="e.g 1" />
-            <button @click="submitBackup">Backup Now</button>
+            <button @click="submitBackupDelete">Delete Now</button>
         </div>
         <p v-if="status">{{ status }}</p>
     </div>
@@ -73,7 +73,7 @@ async function submitBackup() {
     padding: 0 0 0 1.2rem;
 }
 .date {
-    color: greenyellow;
+    color: red;
     font-size: 0.9em;
 }
 .choice_input {

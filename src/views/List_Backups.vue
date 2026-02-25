@@ -26,7 +26,6 @@ function formatName(raw) {
         {{ index + 1 }}: {{ formatName(path) }} <span class="date">last modified: {{ date }}</span>
       </li>
     </ul>
-    <p v-if="status" class="status">{{ status }}</p>
   </div>
 </template>
 
@@ -49,6 +48,5 @@ function formatName(raw) {
   margin: 0;
   padding: 0 0 0 1.2rem;
 }
-.date { color: #fff268; font-size: 0.9em; }
-.status { color: #aaffaa; margin-top: 1em; flex-shrink: 0; }
+.date { color: bisque; font-size: 0.9em; }
 </style>

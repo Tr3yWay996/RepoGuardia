@@ -3,7 +3,9 @@
 > Un outil de sauvegarde et de restauration pour le jeu [R.E.P.O](https://store.steampowered.com/app/3241660/REPO/) par Semiwork.
 
 [English](README.md) | **Français**
+
 ![Alt](https://repobeats.axiom.co/api/embed/e3e267bb39578f6e0e2db4dc89e69aba06e9c099.svg "Repobeats analytics image")
+
 ![GitHub Activity Graph](https://github-readme-activity-graph.vercel.app/graph?username=Tr3yWay996&repo=RepoGuardia&theme=react-dark&hide_border=true)
 
 ---

@@ -73,7 +73,7 @@ async function submitBackup() {
     padding: 0 0 0 1.2rem;
 }
 .date {
-    color: #666;
+    color: #ff7a7a;
     font-size: 0.9em;
 }
 .choice_input {

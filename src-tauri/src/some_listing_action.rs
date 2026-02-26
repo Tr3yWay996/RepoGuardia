@@ -38,7 +38,7 @@ pub fn list_saves() -> Result<Vec<(String, String)>, String> {
     Ok(result)
 }
 
-pub fn list_backup() -> Result<Vec<(String, String)>, String> {
+pub fn list_backup() -> Result<Vec<(String, String, String)>, String> {
     let destination_base_path = get_config_value("destination_base_path");
     let base_path = Path::new(&destination_base_path);
     let mut dirs: Vec<(String, std::time::SystemTime)> = Vec::new();
@@ -58,7 +58,7 @@ pub fn list_backup() -> Result<Vec<(String, String)>, String> {
 
     dirs.sort_by(|a, b| b.1.cmp(&a.1));
 
-    let result: Vec<(String, String)> = dirs
+    let result: Vec<(String, String, String)> = dirs
         .into_iter()
         .map(|(full_path, modified)| {
             // Extract just the folder name (works on Windows AND Linux)
@@ -73,9 +73,18 @@ pub fn list_backup() -> Result<Vec<(String, String)>, String> {
                         .to_string()
                 });
 
+            // Read label from backup_metadata.json
+            let parent_dir = path.parent().unwrap_or(path);
+            let metadata_file = parent_dir.join("backup_metadata.json");
+            let label = std::fs::read_to_string(&metadata_file)
+                .ok()
+                .and_then(|c| serde_json::from_str::<serde_json::Value>(&c).ok())
+                .and_then(|j| j.get("label").and_then(|v| v.as_str()).map(|s| s.to_string()))
+                .unwrap_or_default();
+
             let datetime: DateTime<Local> = modified.into();
             let formatted = datetime.format("%d-%m-%Y %H:%M:%S").to_string();
-            (folder_name, formatted) // Return ("REPO_SAVE_...", "03-02-2026...")
+            (folder_name, formatted, label)
         })
         .collect();
 

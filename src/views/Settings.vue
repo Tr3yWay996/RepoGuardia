@@ -114,7 +114,7 @@ const closeBackupModal = () => {
     </div>
 
     <!-- Version Modal -->
-    <div v-if="showVersionModal" class="modal-overlay" @click="closeVersionModal">
+    <div v-if="showVersionModal" class="modal-overlay">
         <div class="modal-content" @click.stop>
             <h2>Set Game Version</h2>
             <input
@@ -133,7 +133,7 @@ const closeBackupModal = () => {
     </div>
 
     <!-- Saves Path Modal -->
-    <div v-if="showSavesModal" class="modal-overlay" @click="closeSavesModal">
+    <div v-if="showSavesModal" class="modal-overlay">
         <div class="modal-content" @click.stop>
             <h2>Set Saves Path</h2>
             <input
@@ -152,7 +152,7 @@ const closeBackupModal = () => {
     </div>
 
     <!-- Backup Location Modal -->
-    <div v-if="showBackupModal" class="modal-overlay" @click="closeBackupModal">
+    <div v-if="showBackupModal" class="modal-overlay">
         <div class="modal-content" @click.stop>
             <h2>Set Backup Location</h2>
             <input

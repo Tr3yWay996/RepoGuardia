@@ -3,8 +3,12 @@ import { ref, onMounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 
 const saves = ref([]);
-const inputText = ref("");
 const status = ref("");
+const selectedIndex = ref(-1);
+
+function selectItem(index) {
+    selectedIndex.value = index;
+}
 
 onMounted(async () => {
     saves.value = await invoke("list_backup");
@@ -19,18 +23,19 @@ function formatName(raw) {
 }
 
 async function submitRestore() {
-    const index = parseInt(inputText.value) - 1;
-    if (index >= 0 && index < saves.value.length) {
-        status.value = "Restoring...";
-        const selectedSave = saves.value[index][0];
-        try {
-            await invoke("do_restore", { saveName: selectedSave });
-            status.value = `Successfully restored: ${selectedSave}`;
-        } catch (e) {
-            status.value = `Error: ${e}`;
-        }
-    } else {
-        status.value = "Invalid number!";
+    if (selectedIndex.value < 0 || selectedIndex.value >= saves.value.length) {
+        status.value = "Select a backup first!";
+        return;
+    }
+    status.value = "Restoring backup...";
+    const selectedSave = saves.value[selectedIndex.value][0];
+    try {
+        await invoke("do_restore", { saveName: selectedSave });
+        saves.value.splice(selectedIndex.value, 1);
+        selectedIndex.value = -1;
+        status.value = "Backup restored successfully.";
+    } catch (e) {
+        status.value = `Error: ${e}`;
     }
 }
 </script>
@@ -39,15 +44,19 @@ async function submitRestore() {
     <div class="view-layout">
         <h1>Backups available:</h1>
         <ul>
-            <li v-for="([path, date], index) in saves" :key="path">
+            <li
+                v-for="([path, date, label], index) in saves"
+                :key="path"
+                @click="selectItem(index)"
+                :class="{ selected: selectedIndex === index }"
+            >
                 {{ index + 1 }}: {{ formatName(path) }}
+                <span v-if="label" class="label"> [{{ label }}]   </span>
                 <span class="date">last modified: {{ date }}</span>
             </li>
         </ul>
         <div class="choice_input">
-            Enter the number of the backup to restore:
-            <input type="number" v-model="inputText" placeholder="e.g 1" />
-            <button @click="submitRestore">Restore Now</button>
+            <button @click="submitRestore" :disabled="selectedIndex === -1">Restore Now</button>
         </div>
         <p v-if="status">{{ status }}</p>
     </div>
@@ -72,9 +81,26 @@ async function submitRestore() {
     margin: 0;
     padding: 0 0 0 1.2rem;
 }
+li {
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+li:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+li.selected {
+    background: rgba(154, 205, 50, 0.2);
+    outline: 1px solid yellowgreen;
+}
 .date {
     color: orange;
     font-size: 0.9em;
+}
+.label {
+    color: #ffa3ef;
+    font-size: 0.9em;
+    font-style: italic;
 }
 .choice_input {
     flex-shrink: 0;

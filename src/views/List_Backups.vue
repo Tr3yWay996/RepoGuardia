@@ -22,8 +22,8 @@ function formatName(raw) {
   <div class="view-layout">
     <h1>Backups available:</h1>
     <ul>
-      <li v-for="([path, date], index) in saves" :key="path">
-        {{ index + 1 }}: {{ formatName(path) }} <span class="date">last modified: {{ date }}</span>
+      <li v-for="([path, date, label], index) in saves" :key="path">
+        {{ index + 1 }}: {{ formatName(path) }} <span v-if="label" class="label"> [{{ label }}]</span>   <span class="date">last modified: {{ date }}</span>
       </li>
     </ul>
   </div>
@@ -49,4 +49,5 @@ function formatName(raw) {
   padding: 0 0 0 1.2rem;
 }
 .date { color: bisque; font-size: 0.9em; }
+.label { color: #ffa3ef; font-size: 0.9em; font-style: italic; }
 </style>

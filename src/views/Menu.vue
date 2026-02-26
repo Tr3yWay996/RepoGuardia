@@ -32,23 +32,22 @@ async function mystery() {
 <template>
     <main class="container">
         <div>
-            <h1>Welcome to RepoGuardia.</h1>
-            <p
+            <h1 class="tittle">Welcome to RepoGuardia.</h1>
+            <p class="descrition"
                 >A tool to backup your R.E.P.O game saves with everything you
                 could need to manage them!</p
             >
         </div>
         <div class="conteuneur-bouton">
             <button style="color:bisque"        @click.self="$router.push('/saves_list')">List all saves</button>
-            <button style="color:orange"        @click.self="$router.push('/do_restore')">Restore backup</button>
+            <button style="color:yellowgreen"        @click.self="$router.push('/do_restore')">Restore backup</button>
             <button style="color:bisque"        @click.self="$router.push('/backup_list')">List all backups</button>
             <button style="color:red"           @click.self="$router.push('/do_delete')">Delete backup</button>
-            <button style="color:greenyellow"   @click.self="$router.push('/do_backup')">backup save</button>
-<!--             <button style="color:purple"        @click.self="mystery">Mystery button</button>
+            <button style="color:royalblue"   @click.self="$router.push('/do_backup')">backup save</button>
+            <button style="color:orange"        @click.self="$router.push('/do_rename')">rename backup</button>
+<!--        <button style="color:purple"        @click.self="mystery">Mystery button</button>
             <button style="color:brown"         @click.self="open_konsole">Shell execution :3</button> -->
         </div>
-<!--         <p>{{ testMsg }}</p>
-        <p>{{ resetCountMsg }}</p> -->
     </main>
 </template>
 
@@ -61,7 +60,6 @@ async function mystery() {
     font-weight: 400;
 
     color: #fffefe;
-    background: #043d00;
     background: linear-gradient(25deg, rgb(5, 72, 0) 0%, rgba(54, 0, 0, 1) 50%, rgba(2, 0, 99, 1) 100%);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -69,7 +67,14 @@ async function mystery() {
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
 }
-
+.tittle {
+    font-size: 3em;
+    margin: 0;
+}
+.descrition {
+    font-size: 1em;
+    margin: 25px 0 0;
+}
 .container {
     margin: 0;
     padding-top: 10vh;
@@ -87,6 +92,6 @@ async function mystery() {
 }
 .conteuneur-bouton > button {
     flex: 0 0 calc(50% - 5px); /* 2 per row */
-    background-color: rgba(0, 0, 64, 0);
-}
+    background: rgba(0, 0, 0, 0.25);
+    }
 </style>

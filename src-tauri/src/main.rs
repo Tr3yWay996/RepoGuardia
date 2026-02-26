@@ -6,6 +6,7 @@ mod some_config_action;
 mod some_listing_action;
 mod restore;
 mod delete;
+mod rename;
 use lazy_static::lazy_static;
 use serde_json;
 use some_config_action::*;
@@ -45,6 +46,7 @@ fn main() {
             load_config,
             do_restore,
             do_delete,
+            do_rename,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -94,7 +96,7 @@ fn __settings() {}
 
 // 1 List saves to backup (Raw)
 #[tauri::command]
-fn list_backup() -> Result<Vec<(String, String)>, String> {
+fn list_backup() -> Result<Vec<(String, String, String)>, String> {
     some_listing_action::list_backup()
 }
 
@@ -119,3 +121,7 @@ fn do_delete(save_name: String) -> Result<(), String> {
     delete::do_delete(save_name)
 }
 // 5 Rename backup
+#[tauri::command]
+fn do_rename(save_name: String, new_label: String) -> Result<(), String> {
+    rename::do_rename(save_name, new_label)
+}

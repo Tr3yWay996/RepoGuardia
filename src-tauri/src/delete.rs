@@ -1,7 +1,6 @@
 #[allow(unused_imports)]
 use crate::some_config_action::{get_config_value, get_custom_config_value};
 use std::path::PathBuf;
-use std::fs;
 
 pub fn do_delete(save_name: String) -> Result<(), String> {
     let default_saves_path = get_config_value("default_saves_path");
@@ -18,7 +17,6 @@ pub fn do_delete(save_name: String) -> Result<(), String> {
     println!("\nbackup_parent value is : {}", backup_parent.display());
     println!("\nLe 'metadata_file' value is this: {}", metadata_file.display());
 
-    let original_save_name = get_custom_config_value(metadata_file, "original_name");
     std::fs::remove_dir_all(&backup_parent).map_err(|e| e.to_string())?;
     Ok(())
 }

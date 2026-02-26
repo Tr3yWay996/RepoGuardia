@@ -134,7 +134,7 @@ pub fn ensure_config_defaults() {
         let default = "";
         #[cfg(target_os = "windows")]
         let default = format!(
-            "C:\\Users\\blahaj\\AppData\\Local\\com.tr3yway.repoguardia\\backups",
+            "C:\\Users\\{}\\AppData\\Local\\com.tr3yway.repoguardia\\backups",
             std::env::var("USERNAME").unwrap_or("User".into())
         );
         config["destination_base_path"] = serde_json::Value::String(default.into());

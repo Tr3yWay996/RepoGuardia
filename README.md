@@ -1,6 +1,6 @@
 # RepoGuardia
 
-> A save backup and restore tool for the game [R.E.P.O](https://store.steampowered.com/app/3241660/REPO/) by Semiwork.
+> A save backup and restore tool for the game [R.E.P.O](https://store.steampowered.com/app/3241660/REPO/) by Semiwork. Participating in [Flavortown](https://flavortown.hackclub.com/projects/4936)!
 
 **English** | [Français](README-FR.md)
 

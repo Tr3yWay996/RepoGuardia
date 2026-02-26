@@ -97,6 +97,7 @@ pub fn get_custom_config_value(config: PathBuf, key: &str) -> String {
         }
     }
 }
+
 pub fn ensure_config_defaults() {
     let path_guard = CONFIG_PATH.read().unwrap();
     let path = match path_guard.as_ref() {
@@ -118,7 +119,7 @@ pub fn ensure_config_defaults() {
     // Each key: check if missing or empty, then set platform-appropriate default
     if config["default_saves_path"].as_str().unwrap_or("").is_empty() {
         #[cfg(target_os = "linux")]
-        let default = "";  // hard to guess on linux, leave empty
+        let default = "";  // hard to guess on linux, leaving empty
         #[cfg(target_os = "windows")]
         let default = format!(
             "C:\\Users\\{}\\AppData\\LocalLow\\semiwork\\Repo\\saves",

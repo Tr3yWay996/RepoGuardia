@@ -40,6 +40,7 @@ pub fn list_saves() -> Result<Vec<(String, String)>, String> {
 
 pub fn list_backup() -> Result<Vec<(String, String, String)>, String> {
     let destination_base_path = get_config_value("destination_base_path");
+    std::fs::create_dir_all(&destination_base_path).map_err(|e| e.to_string())?;
     let base_path = Path::new(&destination_base_path);
     let mut dirs: Vec<(String, std::time::SystemTime)> = Vec::new();
 

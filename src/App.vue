@@ -11,7 +11,7 @@ async function exit_app(){
     <header class="top-bar">
       <button @click="$router.push('/')">Main menu</button>
       <button @click="$router.push('/settings')">Settings</button>
-      <button style="color:purple"@click.self="exit_app">Click = boom</button>
+      <button style="color:fuchsia"@click.self="exit_app">Exit</button>
     </header>
     <main class="page-area">
       <RouterView />

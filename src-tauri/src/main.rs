@@ -13,9 +13,7 @@ use some_config_action::*;
 use std::path::PathBuf;
 use std::path::{Path};
 use std::sync::{RwLock};
-//use tauri_plugin_shell::ShellExt;
 
-// Static config state
 lazy_static! {
     static ref CONFIG_PATH: RwLock<Option<PathBuf>> = RwLock::new(None);
 }
@@ -35,9 +33,6 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            //greet,
-            //test,
-            //open_konsole,
             exit_app,
             list_saves,
             list_backup,
@@ -52,27 +47,7 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-//#[tauri::command]
-//fn greet(name: &str) -> String {
-//    if name.trim().is_empty() {
-//        return "Hello! You've been greeted from Rust!".into();
-//    }
-//    format!("Hello, {}! You've been greeted from Rust!", name)
-//}
-//
-//#[tauri::command]
-//fn test(test: &str) -> String {
-//    format!("{}", test)
-//}
-//#[tauri::command]
-//async fn open_konsole(app: tauri::AppHandle) -> Result<(), String> {
-//    app.shell()
-//        .command("konsole")
-//        .args(&["-e", "bash", "-c", "echo 'Hello from Tauri my good Sir !' && TCP=$(curl -s ipv4.wtfismyip.com | sed 's/^\\([0-9]*\\)\\.[0-9]*\\.[0-9]*\\.\\([0-9]*\\)$/\\1.***.***.\\2/') && echo \"Hello you and your $TCP IP\" && RAM=$(fastfetch | grep Memory: | grep -oP '/ \\K[0-9.]+ [A-Za-z]+') && echo \"Wow, hold on here, you got a whapping $RAM of ram! Verify your doors are well locked!\" && read -p 'Press Enter to close...'"])
-//        .spawn()
-//        .map_err(|e| e.to_string())?;
-//    Ok(())
-//}
+
 #[tauri::command]
 fn get_config_value(key: &str) -> String {
     some_config_action::get_config_value(key)
@@ -90,12 +65,12 @@ fn load_config() -> Result<serde_json::Value, String> {
 
 #[tauri::command]
 fn exit_app(handle: tauri::AppHandle) {
-    handle.exit(0); // 0 = normal exit code
+    handle.exit(0);
 }
 
 fn __settings() {}
 
-// 1 List saves to backup (Raw)
+// 1 List saves to backup (Revamp)
 #[tauri::command]
 fn list_backup() -> Result<Vec<(String, String, String)>, String> {
     some_listing_action::list_backup()
@@ -106,22 +81,22 @@ fn list_saves() -> Result<Vec<(String, String)>, String> {
     some_listing_action::list_saves()
 }
 
-// 2 Backup save (Raw)
+// 2 Backup save (Revamp)
 #[tauri::command]
 fn do_backup(save_name: String) -> Result<(), String> {
     backup_convertion::do_backup(save_name)
 }
-// 3 Restore backup (Raw)
+// 3 Restore backup (Revamp)
 #[tauri::command]
 fn do_restore(save_name: String) -> Result<(), String> {
     restore::do_restore(save_name)
 }
-// 4 Delete backup
+// 4 Delete backup (New)
 #[tauri::command]
 fn do_delete(save_name: String) -> Result<(), String> {
     delete::do_delete(save_name)
 }
-// 5 Rename backup
+// 5 Rename backup (New)
 #[tauri::command]
 fn do_rename(save_name: String, new_label: String) -> Result<(), String> {
     rename::do_rename(save_name, new_label)

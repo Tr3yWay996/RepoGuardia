@@ -42,21 +42,21 @@ pub fn get_config_value(key: &str) -> String {
     let config_path = match path_guard.as_ref() {
         Some(p) => p,
         None => {
-            eprintln!("CONFIG DEBUG: CONFIG_PATH is None - init_config_path wasn't called");
+            //eprintln!("CONFIG DEBUG: CONFIG_PATH is None - init_config_path wasn't called");
             return String::new();
         }
     };
 
-    eprintln!("CONFIG DEBUG: Looking for config at: {:?}", config_path);
+    //eprintln!("CONFIG DEBUG: Looking for config at: {:?}", config_path);
 
     if !config_path.exists() {
-        eprintln!("CONFIG DEBUG: File doesn't exist!");
+        //eprintln!("CONFIG DEBUG: File doesn't exist!");
         return String::new();
     }
 
     match load_config() {
         Ok(config) => {
-            eprintln!("CONFIG DEBUG: Config loaded: {:?}", config);
+            //eprintln!("CONFIG DEBUG: Config loaded: {:?}", config);
             config
                 .get(key)
                 .and_then(|v| v.as_str())
@@ -70,17 +70,17 @@ pub fn get_config_value(key: &str) -> String {
     }
 }
 pub fn get_custom_config_value(config: PathBuf, key: &str) -> String {
-    eprintln!("CONFIG DEBUG: Looking for config at: {:?}", config);
+    //eprintln!("CONFIG DEBUG: Looking for config at: {:?}", config);
 
     if !config.exists() {
-        eprintln!("CONFIG DEBUG: File doesn't exist!");
+        //eprintln!("CONFIG DEBUG: File doesn't exist!");
         return String::new();
     }
 
     match std::fs::read_to_string(&config) {
         Ok(contents) => match serde_json::from_str::<serde_json::Value>(&contents) {
             Ok(json) => {
-                eprintln!("CONFIG DEBUG: Config loaded: {:?}", json);
+                //eprintln!("CONFIG DEBUG: Config loaded: {:?}", json);
                 json.get(key)
                     .and_then(|v| v.as_str())
                     .map(|s| s.to_string())

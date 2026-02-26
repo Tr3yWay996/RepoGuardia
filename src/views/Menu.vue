@@ -1,34 +1,3 @@
-<script setup lang="ts">
-/* import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
-const testMsg = ref("");
-const resetCountMsg = ref("");
-const trigger = ref(false);
-const version = ("")
-async function test() {
-    count.value += 1;
-    testMsg.value = await invoke("test", {
-        test: `Count value: ${count.value}`,
-    });
-}
-async function resetCount() {
-    count.value = 0;
-    testMsg.value = await invoke("test", {
-        test: `Reseted count to ${count.value}`,
-    });
-}
-async function open_konsole() {
-    trigger.value = true;
-    await invoke("open_konsole");
-}
-async function delete_backups() {
-  
-}
-async function mystery() {
-    console.log('fak u')
-} */
-</script>
-
 <template>
     <main class="container">
         <div>
@@ -39,28 +8,28 @@ async function mystery() {
             >
         </div>
         <div class="conteuneur-bouton">
-            <button style="color:bisque"        @click.self="$router.push('/saves_list')">List all saves</button>
-            <button style="color:yellowgreen"        @click.self="$router.push('/do_restore')">Restore backup</button>
-            <button style="color:bisque"        @click.self="$router.push('/backup_list')">List all backups</button>
-            <button style="color:red"           @click.self="$router.push('/do_delete')">Delete backup</button>
-            <button style="color:royalblue"   @click.self="$router.push('/do_backup')">backup save</button>
-            <button style="color:orange"        @click.self="$router.push('/do_rename')">rename backup</button>
-<!--        <button style="color:purple"        @click.self="mystery">Mystery button</button>
-            <button style="color:brown"         @click.self="open_konsole">Shell execution :3</button> -->
+            <button style="color:forestgreen"   @click.self="$router.push('/do_backup')">backup save</button>
+            <button style="color:goldenrod"        @click.self="$router.push('/manage_backups')">Manage backups</button>
         </div>
     </main>
 </template>
 
 
 <style>
+@font-face {
+    font-family: 'IBM Plex Serif';
+    src: url('../assets/fonts/IMB Plex Serif/IBMPlexSerif-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
 :root {
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: 'IBM Plex Serif', Inter, Avenir, Helvetica, Arial, sans-serif;;
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
 
     color: #fffefe;
-    background: linear-gradient(25deg, rgb(5, 72, 0) 0%, rgba(54, 0, 0, 1) 50%, rgba(2, 0, 99, 1) 100%);
+    background: linear-gradient(-25deg, #4b6cb7 0%, #182848 100%);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

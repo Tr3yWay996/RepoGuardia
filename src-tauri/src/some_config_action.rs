@@ -97,3 +97,56 @@ pub fn get_custom_config_value(config: PathBuf, key: &str) -> String {
         }
     }
 }
+pub fn ensure_config_defaults() {
+    let path_guard = CONFIG_PATH.read().unwrap();
+    let path = match path_guard.as_ref() {
+        Some(p) => p.clone(),
+        None => return,
+    };
+    drop(path_guard);
+
+    // Load existing config, or start with empty object if file doesn't exist yet
+    let mut config: serde_json::Value = if path.exists() {
+        let contents = std::fs::read_to_string(&path).unwrap_or_default();
+        serde_json::from_str(&contents).unwrap_or(serde_json::json!({}))
+    } else {
+        serde_json::json!({})
+    };
+
+    let mut dirty = false;
+
+    // Each key: check if missing or empty, then set platform-appropriate default
+    if config["default_saves_path"].as_str().unwrap_or("").is_empty() {
+        #[cfg(target_os = "linux")]
+        let default = "";  // hard to guess on linux, leave empty
+        #[cfg(target_os = "windows")]
+        let default = format!(
+            "C:\\Users\\{}\\AppData\\LocalLow\\semiwork\\Repo\\saves",
+            std::env::var("USERNAME").unwrap_or("User".into())
+        );
+        config["default_saves_path"] = serde_json::Value::String(default.into());
+        dirty = true;
+    }
+
+    if config["destination_base_path"].as_str().unwrap_or("").is_empty() {
+        #[cfg(target_os = "linux")]
+        let default = "";
+        #[cfg(target_os = "windows")]
+        let default = format!(
+            "C:\\Users\\{}\\AppData\\LocalLow\\semiwork\\Repo\\backups",
+            std::env::var("USERNAME").unwrap_or("User".into())
+        );
+        config["destination_base_path"] = serde_json::Value::String(default.into());
+        dirty = true;
+    }
+
+    if config["game_version"].as_str().unwrap_or("").is_empty() {
+        config["game_version"] = serde_json::Value::String("".into());
+        dirty = true;
+    }
+
+    // Only write back if something was actually missing
+    if dirty {
+        let _ = std::fs::write(&path, serde_json::to_string_pretty(&config).unwrap());
+    }
+}

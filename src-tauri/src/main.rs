@@ -31,6 +31,7 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             init_config_path(&app.handle());
+            ensure_config_defaults();
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

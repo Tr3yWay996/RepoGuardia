@@ -50,16 +50,16 @@ Head over to the [Releases](https://github.com/Tr3yWay996/RepoGuardia/releases) 
 | Linux    | `.deb`, `.rpm`, `.AppImage` |
 
 Download, install, launch. That's it.
-### Anndd it's now nearly 4AM alrady, stopped re-writing here.
+
 ### First-time setup
 
 When you open RepoGuardia for the first time, go to **Settings** and configure:
 
-1. **Game saves path** — where R.E.P.O stores its saves. By default this is:
+1. **Game saves path** — Where R.E.P.O stores its saves. By default this is:
    - Windows: `%AppData%\..\LocalLow\semiwork\REPO\saves`
-   - Linux: None, because i can't guees where it is on your proton sub-system, and if it turns out i can then i'll add it no problem.
-2. **Backup location** — where you want RepoGuardia to store backups. The game's own default backup directory is in `LocalLow\semiwork\REPO\backups` (prone to change, i encountered steam putting back deleted test backups into it a lot of time, then it synched and stoped but yeah its a thing that can happen, **be aware of that ! Thx**), but you can point this anywhere you like of course.
-3. **Game version** — optional , just helps you keep track of which version your saves are from. (Unused for now, use the label to write the game version if you want, but i'm sure cross version compatibility is properly done in R.E.P.O, thx Semiwork)
+   - Linux: None, because i can't guees where it is on your own proton sub file-system, and if it turns out i can then i'll add it whenever i can.
+2. **Backup location** — That's where you want RepoGuardia to store backups. The game's own default backup directory is in `LocalLow\semiwork\REPO\backups` (prone to change, i encountered steam putting back deleted test backups into it a lot of time, then it synched and stoped but yeah its a thing that can happen, **be aware of that ! Thx**), but you can point this anywhere you like of course.
+3. **Game version** — It's optional, just helps you keep track of which version your saves are from and would in the future separate saves from other versions. (Unused for now, use the label to write the game version if you want, but i'm sure cross version compatibility is properly done in R.E.P.O, thx Semiwork)
 
 <img width="799" height="597" alt="image" src="https://github.com/user-attachments/assets/0f822997-c6bb-4455-b8b8-e365d68cd0c8" />
 <sub>Settings page preview</sub>
@@ -68,10 +68,8 @@ When you open RepoGuardia for the first time, go to **Settings** and configure:
 
 The main menu gives you everything you need:
 
-- **List all saves** — Shows every save folder the game currently has, with the last modified date.
 - **Backup save** — Lists your saves and lets you pick which one to back up. A copy is created in your backup directory with a unique ID and a metadata file.
-- **List all backups** — Shows all backups you've made, sorted by most recent.
-- **Restore backup** — Lists your backups and lets you pick one to restore back into the game's save folder.
+- **Manage backup** — Lists your backups and lets you pick one to restore the original save, delete it and even putting a custom label onto it. Example: You are at the level 5, and you play with two friends named Thomson and the other Xander, well now you can back up the save showing at the top of the list (they are sorted by last modification date) and putting its label to “Level 5 with Thomson and Xander”, cool isn't it eh.
 
 Each backup includes a `backup_metadata.json` file that tracks the original save name, the backup name, the creation timestamp, and the label.
 

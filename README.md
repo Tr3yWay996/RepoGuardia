@@ -12,7 +12,7 @@
 
 ## What is RepoGuardia?
 
-If you've ever lost a R.E.P.O save after an update, a crash, or just bad luck because a game breaking bug hapened and you didn't had the nosavedelete mod, you know the pain. RepoGuardia is a small desktop app that lets you back up your R.E.P.O game saves and restore them whenever you need to. No terminal knowledge required (fortunatelly), no file juggling by  because honestly, who doesn't like when things are just smooth and not pain ? Just click, backup, and restart your save. (After restoring, if you are on the main menu to load saves, you need to return to the main menu first then come back so R.E.P.O sees the new save, this limitation is only due to how R.E.P.O process is handling game saves fetching, wich is understandable and not an issue in the slightest)
+If you've ever lost a R.E.P.O save after an update, a crash, or just bad luck because a game breaking bug hapened and you didn't had the nosavedelete mod, you know the pain. RepoGuardia is a small desktop app that lets you back up your R.E.P.O game saves and restore them whenever you need to. No terminal knowledge required (fortunatelly), no file juggling by hand because honestly, who doesn't like when things are just smooth and not pain ? Just click, backup, and restart your save. (After restoring, if you are on the main menu to load saves, you need to return to the main menu first then come back so R.E.P.O sees the new save, this limitation is only due to how R.E.P.O process is handling game saves fetching, wich is understandable and not an issue in the slightest)
 
 It runs on **Windows** and **Linux**. macOS is not supported for now since R.E.P.O doesn't seem to run there natively, but that could change down the road if there's demand.
 
